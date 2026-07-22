@@ -1,0 +1,387 @@
+Setup
+Tigrão95 chose tails for the opening coin flip.
+Tigrão95 won the coin toss.
+Tigrão95 decided to go first.
+Tigrão95 drew 7 cards for the opening hand.
+- 7 drawn cards.
+danielkj4 drew 7 cards for the opening hand.
+- 7 drawn cards.
+   • (me2_87) Dawn, (me1_119) Lillie's Determination, (sv1_191) Rare Candy, (sv5_129) Dudunsparce, (me1_56) Alakazam, (me2_87) Dawn, (me2_94) Wondrous Patch
+danielkj4 took a mulligan.
+- Cards revealed from Mulligan 1
+   • (me2_87) Dawn, (me1_119) Lillie's Determination, (sv1_191) Rare Candy, (sv5_129) Dudunsparce, (me1_56) Alakazam, (me2_87) Dawn, (me2_94) Wondrous Patch
+Tigrão95 drew 1 more card because danielkj4 took at least 1 mulligan.
+- Tigrão95 drew a card.
+Tigrão95 played (sv10_51) Team Rocket's Articuno to the Active Spot.
+danielkj4 played (sv5_128) Dunsparce to the Active Spot.
+danielkj4 played (sv7_57) Slowpoke to the Bench.
+
+Tigrão95's Turn
+Tigrão95 drew a card.
+Tigrão95 played (me2-5_126) Team Rocket's Murkrow to the Bench.
+Tigrão95 played (sv10_153) Team Rocket's Porygon to the Bench.
+Tigrão95 played (me2-5_263) Team Rocket's Transceiver.
+- Tigrão95 drew (me2-5_208) Team Rocket's Proton.
+- Tigrão95 shuffled their deck.
+Tigrão95 played (me2-5_208) Team Rocket's Proton.
+- Tigrão95 drew 3 cards.
+   • (me2-5_126) Team Rocket's Murkrow, (me2-5_126) Team Rocket's Murkrow, (me2-5_126) Team Rocket's Murkrow
+- Tigrão95 shuffled their deck.
+Tigrão95 played (me2-5_126) Team Rocket's Murkrow to the Bench.
+Tigrão95 played (me2-5_126) Team Rocket's Murkrow to the Bench.
+Tigrão95 played (me2-5_126) Team Rocket's Murkrow to the Bench.
+Tigrão95 ended their turn.
+
+danielkj4's Turn
+danielkj4 drew (sv1_191) Rare Candy.
+danielkj4 played (rsv10-5_84) Hilda.
+- danielkj4 drew 2 cards.
+   • (sv7_58) Slowking, (me3_88) Telepathic Psychic Energy
+- danielkj4 shuffled their deck.
+danielkj4 attached (me3_88) Telepathic Psychic Energy to (sv7_57) Slowpoke on the Bench.
+(me3_88) Telepathic Psychic Energy was activated.
+- danielkj4 drew 2 cards and played them to the Bench.
+   • (sv7_57) Slowpoke, (sv6_80) Abra
+- danielkj4 shuffled their deck.
+danielkj4 ended their turn.
+
+Tigrão95's Turn
+Tigrão95 drew a card.
+Tigrão95 played (sv8-5_127) Roto-Stick.
+- Tigrão95 shuffled their deck.
+Tigrão95 played (sv10_171) Team Rocket's Ariana.
+- Tigrão95 drew 4 cards.
+Tigrão95 evolved (me2-5_126) Team Rocket's Murkrow to (me2-5_127) Team Rocket's Honchkrow on the Bench.
+Tigrão95 played (me2-5_203) Team Rocket's Factory to the Stadium spot.
+Tigrão95 played Team Rocket's Factory.
+- Tigrão95 drew 2 cards.
+Tigrão95 played (me1_131) Ultra Ball.
+- Tigrão95 discarded 2 cards.
+   • (me2-5_208) Team Rocket's Proton, (sv10_153) Team Rocket's Porygon
+- Tigrão95 drew (me2-5_127) Team Rocket's Honchkrow.
+- Tigrão95 shuffled their deck.
+Tigrão95 evolved (me2-5_126) Team Rocket's Murkrow to (me2-5_127) Team Rocket's Honchkrow on the Bench.
+Tigrão95 ended their turn.
+
+danielkj4's Turn
+danielkj4 drew (ec_13) Basic Psychic Energy.
+danielkj4 evolved (sv7_57) Slowpoke to (sv7_58) Slowking on the Bench.
+danielkj4 played (me2_87) Dawn.
+- danielkj4 drew 3 cards.
+   • (me2-5_142) Fezandipiti ex, (me1_55) Kadabra, (me1_56) Alakazam
+- danielkj4 shuffled their deck.
+danielkj4 evolved (sv6_80) Abra to (me1_55) Kadabra on the Bench.
+danielkj4's (me1_55) Kadabra used Psychic Draw.
+- danielkj4 drew 2 cards.
+   • (sv6-5_46) Haxorus, (sv5_129) Dudunsparce
+danielkj4 evolved (sv5_128) Dunsparce to (sv5_129) Dudunsparce in the Active Spot.
+danielkj4 attached (ec_13) Basic Psychic Energy to (sv7_58) Slowking on the Bench.
+danielkj4 played (sv5_129) Dudunsparce.
+- danielkj4 drew 3 cards.
+   • (ec_13) Basic Psychic Energy, (sv1_191) Rare Candy, (sv6-5_54) Academy at Night
+- danielkj4 shuffled 2 cards into their deck.
+   • (sv5_129) Dudunsparce, (sv5_128) Dunsparce
+danielkj4's (sv7_58) Slowking is now in the Active Spot.
+danielkj4 played (sv6-5_54) Academy at Night to the Stadium spot.
+- danielkj4 discarded (me2-5_203) Team Rocket's Factory.
+danielkj4 played Academy at Night.
+- danielkj4 put (sv6-5_46) Haxorus on top of their deck.
+danielkj4's (sv7_58) Slowking used Seek Inspiration on Tigrão95's (sv10_51) Team Rocket's Articuno for 230 damage.
+- danielkj4 discarded (sv6-5_46) Haxorus.
+- danielkj4 chose Dragon Pulse
+- danielkj4 discarded 3 cards.
+   • (me2_85) Battle Cage, (me1_114) Boss's Orders, (sv1_168) Crushing Hammer
+Tigrão95's (sv10_51) Team Rocket's Articuno was Knocked Out!
+danielkj4 took a Prize card.
+(sv6-5_54) Academy at Night was added to danielkj4's hand.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow is now in the Active Spot.
+
+Tigrão95's Turn
+Tigrão95 drew a card.
+Tigrão95 played (me3_81) Poké Pad.
+- Tigrão95 drew (me2-5_127) Team Rocket's Honchkrow.
+- Tigrão95 shuffled their deck.
+Tigrão95 evolved (me2-5_126) Team Rocket's Murkrow to (me2-5_127) Team Rocket's Honchkrow on the Bench.
+Tigrão95 played (me2-5_203) Team Rocket's Factory to the Stadium spot.
+- Tigrão95 discarded (sv6-5_54) Academy at Night.
+Tigrão95 attached (rsv10-5_86) Ignition Energy to (me2-5_127) Team Rocket's Honchkrow in the Active Spot.
+Tigrão95 played (me2-5_201) Team Rocket's Archer.
+- Tigrão95 shuffled 2 cards into their deck.
+- Tigrão95 shuffled 9 cards into their deck.
+   • (me2-5_98_ph) Spectrier, (sv6_148) Enhanced Hammer, (sv10_168) Sacred Ash, (sv1_191) Rare Candy, (me2-5_142) Fezandipiti ex, (me1_56) Alakazam, (ec_13) Basic Psychic Energy, (sv1_191) Rare Candy, (sv6-5_54) Academy at Night
+- Tigrão95 drew 5 cards.
+- Tigrão95 drew 3 cards.
+   • (me3_88) Telepathic Psychic Energy, (sv5_128) Dunsparce, (me1_114) Boss's Orders
+Tigrão95 played (me3_81) Poké Pad.
+- Tigrão95 shuffled their deck.
+Tigrão95 played Team Rocket's Factory.
+- Tigrão95 drew 2 cards.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow used Rocket Feathers on danielkj4's (sv7_58) Slowking for 120 damage. danielkj4's (sv7_58) Slowking took 60 more damage because of Darkness Weakness.
+- Damage breakdown:
+   • 1 Pokémon: 60 damage
+   • Weakness to Darkness: 60 damage
+
+- Tigrão95 discarded (me2-5_208) Team Rocket's Proton.
+danielkj4's (sv7_58) Slowking was Knocked Out!
+- 3 cards were discarded from danielkj4's (sv7_58) Slowking.
+   • (me3_88) Telepathic Psychic Energy, (ec_13) Basic Psychic Energy, (sv7_57) Slowpoke
+Tigrão95 took a Prize card.
+A card was added to Tigrão95's hand.
+danielkj4's (sv7_57) Slowpoke is now in the Active Spot.
+(rsv10-5_86) Ignition Energy was activated.
+- (rsv10-5_86) Ignition Energy was discarded from Tigrão95's (me2-5_127) Team Rocket's Honchkrow.
+
+danielkj4's Turn
+danielkj4 drew (me1_119) Lillie's Determination.
+danielkj4 played (sv5_128) Dunsparce to the Bench.
+danielkj4 attached (me3_88) Telepathic Psychic Energy to (sv7_57) Slowpoke in the Active Spot.
+(me3_88) Telepathic Psychic Energy was activated.
+- danielkj4 drew (me2-5_98_ph) Spectrier and played it to the Bench.
+- danielkj4 shuffled their deck.
+danielkj4 played (me1_119) Lillie's Determination.
+- danielkj4 shuffled (me1_114) Boss's Orders into their deck.
+- danielkj4 drew 6 cards.
+   • (sv6_158) Lucky Helmet, (me2_94) Wondrous Patch, (me1_56) Alakazam, (me2-5_198) Poké Pad, (rsv10-5_84) Hilda, (me2-5_142) Fezandipiti ex
+danielkj4 evolved (me1_55) Kadabra to (me1_56) Alakazam on the Bench.
+danielkj4's (me1_56) Alakazam used Psychic Draw.
+- danielkj4 drew 3 cards.
+   • (me2_87) Dawn, (sv10_168) Sacred Ash, (me2-5_207) Team Rocket's Petrel
+danielkj4 played (sv10_168) Sacred Ash.
+- danielkj4 shuffled 3 cards into their deck.
+   • (sv7_57) Slowpoke, (sv7_58) Slowking, (sv6-5_46) Haxorus
+danielkj4 played (me2-5_198) Poké Pad.
+- danielkj4 drew (sv7_57) Slowpoke.
+- danielkj4 shuffled their deck.
+danielkj4 played (sv7_57) Slowpoke to the Bench.
+danielkj4 played (me2_94) Wondrous Patch.
+- danielkj4 attached (ec_13) Basic Psychic Energy to (sv7_57) Slowpoke on the Bench.
+danielkj4 attached (sv6_158) Lucky Helmet to (sv7_57) Slowpoke in the Active Spot.
+
+Tigrão95's Turn
+Tigrão95 drew a card.
+Tigrão95 attached (me2-5_217) Team Rocket's Energy to (me2-5_127) Team Rocket's Honchkrow in the Active Spot.
+Tigrão95 played (sv10_171) Team Rocket's Ariana.
+- Tigrão95 drew 3 cards.
+Tigrão95 played Team Rocket's Factory.
+- Tigrão95 drew 2 cards.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow used Rocket Feathers on danielkj4's (sv7_57) Slowpoke for 120 damage. danielkj4's (sv7_57) Slowpoke took 60 more damage because of Darkness Weakness.
+- Damage breakdown:
+   • 1 Pokémon: 60 damage
+   • Weakness to Darkness: 60 damage
+
+- Tigrão95 discarded (sv10_176) Team Rocket's Petrel.
+danielkj4's (sv7_57) Slowpoke was Knocked Out!
+- 2 cards were discarded from danielkj4's (sv7_57) Slowpoke.
+   • (me3_88) Telepathic Psychic Energy, (sv6_158) Lucky Helmet
+(sv6_158) Lucky Helmet was activated.
+- danielkj4 drew 2 cards.
+   • (sv6-5_46) Haxorus, (me3_88) Telepathic Psychic Energy
+Tigrão95 took a Prize card.
+A card was added to Tigrão95's hand.
+danielkj4's (sv5_128) Dunsparce is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (ec_13) Basic Psychic Energy.
+danielkj4 played (me2-5_142) Fezandipiti ex to the Bench.
+danielkj4's (me2-5_142) Fezandipiti ex used Flip the Script.
+- danielkj4 drew 3 cards.
+   • (ec_13) Basic Psychic Energy, (sv1_191) Rare Candy, (sv5_128) Dunsparce
+danielkj4 played (sv5_128) Dunsparce to the Bench.
+danielkj4 played (rsv10-5_84) Hilda.
+- danielkj4 drew 2 cards.
+   • (sv5_129) Dudunsparce, (sv8_191) Enriching Energy
+- danielkj4 shuffled their deck.
+danielkj4 attached (ec_13) Basic Psychic Energy to (me1_56) Alakazam on the Bench.
+danielkj4 retreated (sv5_128) Dunsparce to the Bench.
+danielkj4's (me1_56) Alakazam is now in the Active Spot.
+danielkj4 evolved (sv5_128) Dunsparce to (sv5_129) Dudunsparce on the Bench.
+danielkj4's (me1_56) Alakazam used Powerful Hand.
+- danielkj4 put 14 damage counters on danielkj4's (me2-5_127) Team Rocket's Honchkrow.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow was Knocked Out!
+- 2 cards were discarded from Tigrão95's (me2-5_127) Team Rocket's Honchkrow.
+   • (me2-5_217) Team Rocket's Energy, (me2-5_126) Team Rocket's Murkrow
+danielkj4 took a Prize card.
+(sv6_80) Abra was added to danielkj4's hand.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow is now in the Active Spot.
+
+Tigrão95's Turn
+Tigrão95 drew a card.
+Tigrão95 attached (me2-5_217) Team Rocket's Energy to (me2-5_127) Team Rocket's Honchkrow in the Active Spot.
+Tigrão95 evolved (sv10_153) Team Rocket's Porygon to (sv10_154) Team Rocket's Porygon2 on the Bench.
+Tigrão95 played (me2-5_201) Team Rocket's Archer.
+- Tigrão95 shuffled 8 cards into their deck.
+- Tigrão95 shuffled 8 cards into their deck.
+   • (me2_87) Dawn, (me2-5_207) Team Rocket's Petrel, (sv6-5_46) Haxorus, (me3_88) Telepathic Psychic Energy, (ec_13) Basic Psychic Energy, (sv1_191) Rare Candy, (sv8_191) Enriching Energy, (sv6_80) Abra
+- Tigrão95 drew 5 cards.
+- Tigrão95 drew 3 cards.
+   • (me2-5_184) Buddy-Buddy Poffin, (me2_87) Dawn, (me1_114) Boss's Orders
+Tigrão95 played Team Rocket's Factory.
+- Tigrão95 drew 2 cards.
+Tigrão95 played (me2-5_196) Night Stretcher.
+- Tigrão95 moved Tigrão95's (me2-5_127) Team Rocket's Honchkrow to their hand.
+Tigrão95 evolved (me2-5_126) Team Rocket's Murkrow to (me2-5_127) Team Rocket's Honchkrow on the Bench.
+Tigrão95 played (sv8_183) Miracle Headset.
+- Tigrão95 moved Tigrão95's 2 cards to their hand.
+   • (sv10_171) Team Rocket's Ariana, (me2-5_201) Team Rocket's Archer
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow used Rocket Feathers on danielkj4's (me1_56) Alakazam for 240 damage. danielkj4's (me1_56) Alakazam took 120 more damage because of Darkness Weakness.
+- Damage breakdown:
+   • 2 Pokémon: 120 damage
+   • Weakness to Darkness: 120 damage
+
+- Tigrão95 discarded 2 cards.
+   • (sv10_176) Team Rocket's Petrel, (sv10_171) Team Rocket's Ariana
+danielkj4's (me1_56) Alakazam was Knocked Out!
+- 3 cards were discarded from danielkj4's (me1_56) Alakazam.
+   • (ec_13) Basic Psychic Energy, (me1_55) Kadabra, (sv6_80) Abra
+Tigrão95 took a Prize card.
+A card was added to Tigrão95's hand.
+danielkj4's (sv5_128) Dunsparce is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (me2-5_184) Buddy-Buddy Poffin.
+danielkj4's (me2-5_142) Fezandipiti ex used Flip the Script.
+- danielkj4 drew 3 cards.
+   • (me2-5_198) Poké Pad, (me1_56) Alakazam, (sv5_129) Dudunsparce
+danielkj4's (sv5_129) Dudunsparce used Run Away Draw.
+- danielkj4 drew 3 cards.
+   • (me1_55) Kadabra, (me2-5_196) Night Stretcher, (sv5_129) Dudunsparce
+- danielkj4 shuffled 2 cards into their deck.
+   • (sv5_129) Dudunsparce, (sv5_128) Dunsparce
+danielkj4 played (me2-5_198) Poké Pad.
+- danielkj4 drew (sv6-5_47) Kyurem.
+- danielkj4 shuffled their deck.
+danielkj4 evolved (sv5_128) Dunsparce to (sv5_129) Dudunsparce in the Active Spot.
+danielkj4's (sv5_129) Dudunsparce used Run Away Draw.
+- danielkj4 drew 3 cards.
+   • (me2_87) Dawn, (sv6-5_57) Colress's Tenacity, (sv6-5_46) Haxorus
+- danielkj4 shuffled 2 cards into their deck.
+   • (sv5_129) Dudunsparce, (sv5_128) Dunsparce
+danielkj4's (sv7_57) Slowpoke is now in the Active Spot.
+danielkj4 played (sv6-5_57) Colress's Tenacity.
+- danielkj4 drew 2 cards.
+   • (sv6-5_54) Academy at Night, (sv8_191) Enriching Energy
+- danielkj4 shuffled their deck.
+danielkj4 played (sv6-5_54) Academy at Night to the Stadium spot.
+- danielkj4 discarded (me2-5_203) Team Rocket's Factory.
+danielkj4 played (me2-5_184) Buddy-Buddy Poffin.
+- danielkj4 drew 2 cards and played them to the Bench.
+   • (sv5_128) Dunsparce, (sv6_80) Abra
+- danielkj4 shuffled their deck.
+danielkj4 played (me2-5_184) Buddy-Buddy Poffin.
+- danielkj4 drew (sv5_128) Dunsparce and played it to the Bench.
+- danielkj4 shuffled their deck.
+danielkj4 attached (sv8_191) Enriching Energy to (sv7_57) Slowpoke in the Active Spot.
+(sv8_191) Enriching Energy was activated.
+- danielkj4 drew 4 cards.
+   • (me3_88) Telepathic Psychic Energy, (sv7_58) Slowking, (sv5_129) Dudunsparce, (me4_61) Metagross
+danielkj4 evolved (sv7_57) Slowpoke to (sv7_58) Slowking in the Active Spot.
+danielkj4 played Academy at Night.
+- danielkj4 put (sv6-5_47) Kyurem on top of their deck.
+danielkj4's (sv7_58) Slowking used Seek Inspiration on Tigrão95's (me2-5_127) Team Rocket's Honchkrow for 110 damage.
+- danielkj4 discarded (sv6-5_47) Kyurem.
+- danielkj4 chose Trifrost
+- 2 cards were discarded from danielkj4's (sv7_58) Slowking.
+   • (ec_13) Basic Psychic Energy, (sv8_191) Enriching Energy
+- Tigrão95's (me2-5_127) Team Rocket's Honchkrow took 110 damage.
+- Tigrão95's (sv10_154) Team Rocket's Porygon2 took 110 damage.
+Tigrão95's (sv10_154) Team Rocket's Porygon2 was Knocked Out!
+(sv10_153) Team Rocket's Porygon was discarded from Tigrão95's (sv10_154) Team Rocket's Porygon2.
+danielkj4 took a Prize card.
+(sv1_168) Crushing Hammer was added to danielkj4's hand.
+
+Tigrão95's Turn
+Tigrão95 drew a card.
+Tigrão95 played (me2-5_203) Team Rocket's Factory to the Stadium spot.
+- Tigrão95 discarded (sv6-5_54) Academy at Night.
+Tigrão95 played (me2-5_201) Team Rocket's Archer.
+- Tigrão95 shuffled 5 cards into their deck.
+- Tigrão95 shuffled 12 cards into their deck.
+   • (me2_87) Dawn, (me1_114) Boss's Orders, (me1_56) Alakazam, (sv5_129) Dudunsparce, (me1_55) Kadabra, (me2-5_196) Night Stretcher, (me2_87) Dawn, (sv6-5_46) Haxorus, (me3_88) Telepathic Psychic Energy, (sv5_129) Dudunsparce, (me4_61) Metagross, (sv1_168) Crushing Hammer
+- Tigrão95 drew 5 cards.
+- Tigrão95 drew 3 cards.
+   • (me3_88) Telepathic Psychic Energy, (me2-5_196) Night Stretcher, (ec_13) Basic Psychic Energy
+Tigrão95 attached (me2-5_217) Team Rocket's Energy to (me2-5_127) Team Rocket's Honchkrow on the Bench.
+Tigrão95 played Team Rocket's Factory.
+- Tigrão95 drew 2 cards.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow used Rocket Feathers on danielkj4's (sv7_58) Slowking for 120 damage. danielkj4's (sv7_58) Slowking took 60 more damage because of Darkness Weakness.
+- Damage breakdown:
+   • 1 Pokémon: 60 damage
+   • Weakness to Darkness: 60 damage
+
+- Tigrão95 discarded (me2-5_204) Team Rocket's Giovanni.
+danielkj4's (sv7_58) Slowking was Knocked Out!
+(sv7_57) Slowpoke was discarded from danielkj4's (sv7_58) Slowking.
+Tigrão95 took a Prize card.
+A card was added to Tigrão95's hand.
+danielkj4's (sv5_128) Dunsparce is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (me2-5_207) Team Rocket's Petrel.
+danielkj4 played (me2-5_207) Team Rocket's Petrel.
+- danielkj4 drew (sv6_148) Enhanced Hammer.
+- danielkj4 shuffled their deck.
+danielkj4 played (sv6_148) Enhanced Hammer.
+- (me2-5_217) Team Rocket's Energy was discarded from danielkj4's (me2-5_127) Team Rocket's Honchkrow.
+danielkj4 played Team Rocket's Factory.
+- Tigrão95 drew 2 cards.
+   • (me2_94) Wondrous Patch, (me1_56) Alakazam
+danielkj4's (me2-5_142) Fezandipiti ex used Flip the Script.
+- danielkj4 drew 3 cards.
+   • (sv1_168) Crushing Hammer, (sv5_129) Dudunsparce, (ec_13) Basic Psychic Energy
+danielkj4 evolved (sv5_128) Dunsparce to (sv5_129) Dudunsparce on the Bench.
+danielkj4's (sv5_129) Dudunsparce used Run Away Draw.
+- danielkj4 drew 3 cards.
+   • (sv5_129) Dudunsparce, (me2_87) Dawn, (me1_114) Boss's Orders
+- danielkj4 shuffled 2 cards into their deck.
+   • (sv5_129) Dudunsparce, (sv5_128) Dunsparce
+danielkj4 evolved (sv5_128) Dunsparce to (sv5_129) Dudunsparce in the Active Spot.
+danielkj4 played (sv5_129) Dudunsparce.
+- danielkj4 drew 3 cards.
+   • (sv1_191) Rare Candy, (rsv10-5_84) Hilda, (sv7_58) Slowking
+- danielkj4 shuffled 2 cards into their deck.
+   • (sv5_129) Dudunsparce, (sv5_128) Dunsparce
+danielkj4's (sv6_80) Abra is now in the Active Spot.
+danielkj4 played (sv1_191) Rare Candy.
+- danielkj4 evolved (sv6_80) Abra to (me1_56) Alakazam in the Active Spot.
+danielkj4's (me1_56) Alakazam used Psychic Draw.
+- danielkj4 drew 3 cards.
+   • (me4_61) Metagross, (me2_87) Dawn, (me1_55) Kadabra
+danielkj4 attached (ec_13) Basic Psychic Energy to (me1_56) Alakazam in the Active Spot.
+danielkj4 played (me2-5_196) Night Stretcher.
+- danielkj4 moved danielkj4's (sv7_57) Slowpoke to their hand.
+danielkj4 played (sv7_57) Slowpoke to the Bench.
+danielkj4 played (me2_94) Wondrous Patch.
+- danielkj4 attached (ec_13) Basic Psychic Energy to (sv7_57) Slowpoke on the Bench.
+danielkj4's (me1_56) Alakazam used Powerful Hand.
+- danielkj4 put 20 damage counters on danielkj4's (me2-5_127) Team Rocket's Honchkrow.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow was Knocked Out!
+- 2 cards were discarded from Tigrão95's (me2-5_127) Team Rocket's Honchkrow.
+   • (me2-5_217) Team Rocket's Energy, (me2-5_126) Team Rocket's Murkrow
+danielkj4 took a Prize card.
+(sv9_120) Dunsparce was added to danielkj4's hand.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow is now in the Active Spot.
+
+Tigrão95's Turn
+Tigrão95 drew a card.
+Tigrão95 played (sv8-5_127) Roto-Stick.
+- Tigrão95 drew 4 cards.
+   • (me2-5_201) Team Rocket's Archer, (me2-5_201) Team Rocket's Archer, (me2-5_204) Team Rocket's Giovanni, (me2-5_208) Team Rocket's Proton
+Tigrão95 played (me2-5_204) Team Rocket's Giovanni.
+- Tigrão95's (me2-5_127) Team Rocket's Honchkrow was switched with Tigrão95's (me2-5_127) Team Rocket's Honchkrow to become the Active Pokémon.
+- danielkj4's (me2-5_142) Fezandipiti ex was switched with danielkj4's (me1_56) Alakazam to become the Active Pokémon.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow is now in the Active Spot.
+danielkj4's (me2-5_142) Fezandipiti ex is now in the Active Spot.
+Tigrão95 attached (rsv10-5_86) Ignition Energy to (me2-5_127) Team Rocket's Honchkrow in the Active Spot.
+Tigrão95 played Team Rocket's Factory.
+- Tigrão95 drew 2 cards.
+Tigrão95's (me2-5_127) Team Rocket's Honchkrow used Rocket Feathers on danielkj4's (me2-5_142) Fezandipiti ex for 420 damage.
+- Damage breakdown:
+   • 7 Pokémon: 420 damage
+
+- Tigrão95 discarded 7 cards.
+   • (me2-5_201) Team Rocket's Archer, (me2-5_204) Team Rocket's Giovanni, (me2-5_201) Team Rocket's Archer, (me2-5_208) Team Rocket's Proton, (sv10_176) Team Rocket's Petrel, (sv10_171) Team Rocket's Ariana, (sv10_171) Team Rocket's Ariana
+danielkj4's (me2-5_142) Fezandipiti ex was Knocked Out!
+Tigrão95 took 2 Prize cards.
+A card was added to Tigrão95's hand.
+A card was added to Tigrão95's hand.
+Opponent took all of their Prize cards. Tigrão95 wins.

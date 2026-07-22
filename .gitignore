@@ -1,0 +1,27 @@
+# --- Secrets: NEVER commit these ---
+.streamlit/secrets.toml
+.env
+*.key
+
+# --- Local user data generated at runtime ---
+game_history.json
+saved_decks.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# --- Editor / OS ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- Claude Code local settings ---
+.claude/
+
+# Superseded original from Google AI Studio (kept locally, not tracked)
+ai_studio_code*.py

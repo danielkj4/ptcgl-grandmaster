@@ -1,0 +1,205 @@
+Setup
+gladys2meetu chose heads for the opening coin flip.
+gladys2meetu won the coin toss.
+gladys2meetu decided to go first.
+gladys2meetu drew 7 cards for the opening hand.
+- 7 drawn cards.
+danielkj4 drew 7 cards for the opening hand.
+- 7 drawn cards.
+   • (mee_2) Basic Fire Energy, (mee_2) Basic Fire Energy, (me3_88) Telepathic Psychic Energy, (me2-5_196) Night Stretcher, (me1_54) Abra, (me1_125) Rare Candy, (sv8_191) Enriching Energy
+gladys2meetu took a mulligan.
+- Cards revealed from Mulligan 1
+   • (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (me3_108) Energy Recycler, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy
+gladys2meetu took 2 mulligans.
+- Cards revealed from Mulligan 2
+   • (me4_114) Surfing Beach, (me3_108) Energy Recycler, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (me1_173) Night Stretcher, (me1_157) Mega Abomasnow ex, (me1_157) Mega Abomasnow ex
+danielkj4 drew 2 more cards because gladys2meetu took at least 1 mulligan.
+- danielkj4 drew 2 cards.
+   • (sv6_80) Abra, (me2-5_248) Drakloak
+gladys2meetu played (me1_140) Snover to the Active Spot.
+gladys2meetu played (me1_140) Snover to the Bench.
+danielkj4 played (me1_54) Abra to the Active Spot.
+danielkj4 played (sv6_80) Abra to the Bench.
+
+gladys2meetu's Turn
+gladys2meetu drew a card.
+gladys2meetu attached (xy12_93) Basic Water Energy to (me1_140) Snover in the Active Spot.
+gladys2meetu ended their turn.
+
+danielkj4's Turn
+danielkj4 drew (me2-5_158) Dreepy.
+danielkj4 played (me2-5_158) Dreepy to the Bench.
+danielkj4 attached (me3_88) Telepathic Psychic Energy to (me1_54) Abra in the Active Spot.
+(me3_88) Telepathic Psychic Energy was activated.
+- danielkj4 drew 2 cards and played them to the Bench.
+   • (me1_54) Abra, (sv6_80) Abra
+- danielkj4 shuffled their deck.
+danielkj4's (me1_54) Abra used Teleportation Attack on gladys2meetu’s (me1_140) Snover for 10 damage.
+- danielkj4's (sv6_80) Abra was switched with danielkj4's (me1_54) Abra to become the Active Pokémon.
+danielkj4's (sv6_80) Abra is now in the Active Spot.
+
+gladys2meetu's Turn
+gladys2meetu drew a card.
+gladys2meetu evolved (me1_140) Snover to (me1_157) Mega Abomasnow ex in the Active Spot.
+gladys2meetu evolved (me1_140) Snover to (me1_157) Mega Abomasnow ex on the Bench.
+gladys2meetu attached (xy12_93) Basic Water Energy to (me1_157) Mega Abomasnow ex in the Active Spot.
+gladys2meetu played (sv8-5_139) Larry's Skill.
+- gladys2meetu discarded 2 cards.
+   • (me1_157) Mega Abomasnow ex, (xy12_93) Basic Water Energy
+- gladys2meetu drew 3 cards.
+   • (me1_34_ph) Kyogre, (me2_129) Dawn, (xy12_93) Basic Water Energy
+- gladys2meetu shuffled their deck.
+gladys2meetu played (me1_34_ph) Kyogre to the Bench.
+gladys2meetu's (me1_157) Mega Abomasnow ex used Hammer-lanche on danielkj4’s (sv6_80) Abra for 600 damage.
+- Damage breakdown:
+   • 6 attached Energy: 600 damage
+
+- gladys2meetu discarded 6 cards.
+   • (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy
+danielkj4's (sv6_80) Abra was Knocked Out!
+gladys2meetu took a Prize card.
+A card was added to gladys2meetu's hand.
+danielkj4's (sv6_80) Abra is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (me2_87) Dawn.
+danielkj4 evolved (me2-5_158) Dreepy to (me2-5_248) Drakloak on the Bench.
+danielkj4 played (me2_87) Dawn.
+- danielkj4 drew 3 cards.
+   • (me2-5_142) Fezandipiti ex, (me1_55) Kadabra, (me1_56) Alakazam
+- danielkj4 shuffled their deck.
+danielkj4 evolved (me1_54) Abra to (me1_55) Kadabra on the Bench.
+danielkj4's (me1_55) Kadabra used Psychic Draw.
+- danielkj4 drew 2 cards.
+   • (me2_94) Wondrous Patch, (me2-5_248) Drakloak
+danielkj4 played (me2-5_142) Fezandipiti ex to the Bench.
+danielkj4 played (me1_125) Rare Candy.
+- danielkj4 evolved (me1_54) Abra to (me1_56) Alakazam on the Bench.
+danielkj4's (me1_56) Alakazam used Psychic Draw.
+- danielkj4 drew 3 cards.
+   • (me1_114) Boss's Orders, (rsv10-5_84) Hilda, (sv6_148) Enhanced Hammer
+danielkj4 attached (sv8_191) Enriching Energy to (sv6_80) Abra in the Active Spot.
+(sv8_191) Enriching Energy was activated.
+- danielkj4 drew 4 cards.
+   • (me2-5_160) Dragapult ex, (me2-5_248) Drakloak, (me3_81) Poké Pad, (zsv10-5_40_ph) Elgyem
+danielkj4's (me2-5_142) Fezandipiti ex used Flip the Script.
+- danielkj4 drew 3 cards.
+   • (me4_82) Special Red Card, (me1_114) Boss's Orders, (me1_56) Alakazam
+danielkj4's (me2-5_248) Drakloak used Recon Directive.
+- danielkj4 drew (swsh12-5_125) Crushing Hammer.
+danielkj4's (sv6_80) Abra used Teleporter.
+- danielkj4 shuffled 2 cards into their deck.
+   • (sv6_80) Abra, (sv8_191) Enriching Energy
+danielkj4's (me1_56) Alakazam is now in the Active Spot.
+danielkj4's (me1_56) Alakazam used Powerful Hand.
+- danielkj4 put 32 damage counters on danielkj4's (me1_157) Mega Abomasnow ex.
+
+gladys2meetu's Turn
+gladys2meetu drew a card.
+gladys2meetu attached (xy12_93) Basic Water Energy to (me1_34_ph) Kyogre on the Bench.
+gladys2meetu played (me4_114) Surfing Beach to the Stadium spot.
+gladys2meetu played (me2_129) Dawn.
+- gladys2meetu drew 2 cards.
+   • (me1_34_ph) Kyogre, (me1_157) Mega Abomasnow ex
+- gladys2meetu shuffled their deck.
+gladys2meetu played (me1_34_ph) Kyogre to the Bench.
+gladys2meetu played Surfing Beach.
+- gladys2meetu's (me1_34_ph) Kyogre was switched with gladys2meetu's (me1_157) Mega Abomasnow ex to become the Active Pokémon.
+gladys2meetu's (me1_34_ph) Kyogre is now in the Active Spot.
+gladys2meetu's (me1_34_ph) Kyogre used Riptide on danielkj4’s (me1_56) Alakazam for 140 damage.
+- Damage breakdown:
+   • 7 attached Energy: 140 damage
+
+- gladys2meetu shuffled 7 cards into their deck.
+   • (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy
+danielkj4's (me1_56) Alakazam was Knocked Out!
+- 2 cards were discarded from danielkj4's (me1_56) Alakazam.
+   • (me3_88) Telepathic Psychic Energy, (me1_54) Abra
+gladys2meetu took a Prize card.
+A card was added to gladys2meetu's hand.
+danielkj4's (me1_55) Kadabra is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (me2-5_158) Dreepy.
+danielkj4 played (me2-5_158) Dreepy to the Bench.
+danielkj4 evolved (me1_55) Kadabra to (me1_56) Alakazam in the Active Spot.
+danielkj4's (me1_56) Alakazam used Psychic Draw.
+- danielkj4 drew 3 cards.
+   • (sv10_168) Sacred Ash, (rsv10-5_84) Hilda, (sv8_191) Enriching Energy
+danielkj4 played (swsh12-5_125) Crushing Hammer.
+- danielkj4 flipped a coin and it landed on tails.
+danielkj4's (me2-5_248) Drakloak used Recon Directive.
+- danielkj4 drew (me3_81) Poké Pad.
+danielkj4's (me2-5_142) Fezandipiti ex used Flip the Script.
+- danielkj4 drew 3 cards.
+   • (sv6_80) Abra, (swsh12-5_125) Crushing Hammer, (me2_87) Dawn
+danielkj4 played (swsh12-5_125) Crushing Hammer.
+- danielkj4 flipped a coin and it landed on heads.
+- (xy12_93) Basic Water Energy was discarded from danielkj4's (me1_157) Mega Abomasnow ex.
+danielkj4 played (sv6_80) Abra to the Bench.
+danielkj4 attached (sv8_191) Enriching Energy to (sv6_80) Abra on the Bench.
+(sv8_191) Enriching Energy was activated.
+- danielkj4 drew 4 cards.
+   • (mee_5) Basic Psychic Energy, (me2_85) Battle Cage, (me1_55) Kadabra, (mee_5) Basic Psychic Energy
+danielkj4 played (me2_85) Battle Cage to the Stadium spot.
+- danielkj4 discarded (me4_114) Surfing Beach.
+danielkj4 played (me1_114) Boss's Orders.
+- gladys2meetu's (me1_157) Mega Abomasnow ex was switched with gladys2meetu's (me1_34_ph) Kyogre to become the Active Pokémon.
+gladys2meetu's (me1_157) Mega Abomasnow ex is now in the Active Spot.
+danielkj4 ended their turn.
+
+gladys2meetu's Turn
+gladys2meetu drew a card.
+gladys2meetu attached (xy12_93) Basic Water Energy to (me1_157) Mega Abomasnow ex in the Active Spot.
+gladys2meetu ended their turn.
+
+danielkj4's Turn
+danielkj4 drew (sv5_144) Buddy-Buddy Poffin.
+danielkj4 evolved (me2-5_158) Dreepy to (me2-5_248) Drakloak on the Bench.
+danielkj4 attached (mee_5) Basic Psychic Energy to (me1_56) Alakazam in the Active Spot.
+danielkj4 evolved (sv6_80) Abra to (me1_55) Kadabra on the Bench.
+danielkj4's (me1_55) Kadabra used Psychic Draw.
+- danielkj4 drew 2 cards.
+   • (me3_81) Poké Pad, (me1_114) Boss's Orders
+danielkj4's (me1_56) Alakazam used Powerful Hand.
+- danielkj4 put 40 damage counters on danielkj4's (me1_157) Mega Abomasnow ex.
+gladys2meetu's (me1_157) Mega Abomasnow ex was Knocked Out!
+- 2 cards were discarded from gladys2meetu's (me1_157) Mega Abomasnow ex.
+   • (xy12_93) Basic Water Energy, (me1_140) Snover
+danielkj4 took 3 Prize cards.
+(rsv10-5_84) Hilda was added to danielkj4's hand.
+(mee_5) Basic Psychic Energy was added to danielkj4's hand.
+(me2_14_ph) Moltres was added to danielkj4's hand.
+gladys2meetu's (me1_157) Mega Abomasnow ex is now in the Active Spot.
+
+gladys2meetu's Turn
+gladys2meetu drew a card.
+gladys2meetu attached (xy12_93) Basic Water Energy to (me1_157) Mega Abomasnow ex in the Active Spot.
+gladys2meetu played (me1_173) Night Stretcher.
+- gladys2meetu moved gladys2meetu's (me1_140) Snover to their hand.
+gladys2meetu played (me1_140) Snover to the Bench.
+gladys2meetu's (me1_157) Mega Abomasnow ex used Hammer-lanche on danielkj4’s (me1_56) Alakazam for 300 damage.
+- Damage breakdown:
+   • 3 attached Energy: 300 damage
+
+- gladys2meetu discarded 6 cards.
+   • (xy12_93) Basic Water Energy, (sv8-5_139) Larry's Skill, (xy12_93) Basic Water Energy, (me4_114) Surfing Beach, (xy12_93) Basic Water Energy, (me2_129) Dawn
+danielkj4's (me1_56) Alakazam was Knocked Out!
+- 3 cards were discarded from danielkj4's (me1_56) Alakazam.
+   • (mee_5) Basic Psychic Energy, (me1_55) Kadabra, (me1_54) Abra
+gladys2meetu took a Prize card.
+A card was added to gladys2meetu's hand.
+danielkj4's (me1_55) Kadabra is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (me1_56) Alakazam.
+danielkj4 attached (mee_5) Basic Psychic Energy to (me1_55) Kadabra in the Active Spot.
+danielkj4's (me1_55) Kadabra used Super Psy Bolt on gladys2meetu’s (me1_157) Mega Abomasnow ex for 30 damage.
+gladys2meetu's (me1_157) Mega Abomasnow ex was Knocked Out!
+- 3 cards were discarded from gladys2meetu's (me1_157) Mega Abomasnow ex.
+   • (xy12_93) Basic Water Energy, (xy12_93) Basic Water Energy, (me1_140) Snover
+danielkj4 took 3 Prize cards.
+(sv5_146) Eri was added to danielkj4's hand.
+(me2-5_197) Nighttime Mine was added to danielkj4's hand.
+(sv8-5_4_mph) Budew was added to danielkj4's hand.
+All Prize cards taken. danielkj4 wins.
