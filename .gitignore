@@ -25,3 +25,6 @@ env/
 
 # Superseded original from Google AI Studio (kept locally, not tracked)
 ai_studio_code*.py
+
+# Remembers the last player analyzed (local convenience only)
+last_player.json

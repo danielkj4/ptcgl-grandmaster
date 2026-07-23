@@ -7,6 +7,8 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
+import sys
+import subprocess
 import hashlib
 import datetime
 from collections import Counter
@@ -120,6 +122,30 @@ def derive_weakness_tags(advice_dict):
             tags.append(cat)
     return tags
 
+LESSON_FIELDS = ("LESSON_TURN", "SITUATION", "YOU_PLAYED", "COST",
+                 "BETTER_LINE", "PRINCIPLE", "TELL")
+
+def parse_lesson(full_text):
+    """Extract the structured teaching moment. Tolerant of multi-line values and
+    of the model omitting fields; returns {} if there's no usable lesson."""
+    m = re.search(r"LESSON_START(.*?)LESSON_END", full_text, re.DOTALL)
+    if not m:
+        return {}
+    out, cur = {}, None
+    for line in m.group(1).split("\n"):
+        s = line.strip()
+        if not s:
+            continue
+        head = s.split(":", 1)
+        if len(head) == 2 and head[0].strip().upper() in LESSON_FIELDS:
+            cur = head[0].strip().upper()
+            out[cur] = head[1].strip()
+        elif cur:
+            out[cur] += " " + s          # continuation of a wrapped value
+    lesson = {k.lower(): v.strip() for k, v in out.items() if v.strip()}
+    # Drop any leftover template placeholders if the model echoed the format.
+    return {k: v for k, v in lesson.items() if not v.startswith("<")}
+
 def build_weakness_evidence(tags, tag_turns, advice_dict):
     """Map each flagged weakness -> the specific turns that show it, so My Progress
     can drill from a trend down to the actual moments it happened.
@@ -143,6 +169,53 @@ def build_weakness_evidence(tags, tag_turns, advice_dict):
         if items:
             evidence[cat] = items
     return evidence
+
+# --- 3b. CLIPBOARD IMPORT (one-click import from PTCG Live) ---
+# PTCG Live does NOT write battle logs to disk (its Player.log is Unity engine
+# diagnostics only), so the clipboard is the only automation surface: the game's
+# "Copy Battle Log" button is the hand-off point.
+# NOTE: this reads the clipboard of the machine running Streamlit. That's your own
+# machine when running locally; it would not work on a remotely-hosted deployment.
+LAST_PLAYER_FILE = "last_player.json"
+
+def read_clipboard():
+    """Read the system clipboard. Returns '' if unavailable."""
+    try:
+        if sys.platform == "darwin":
+            return subprocess.run(["pbpaste"], capture_output=True, text=True, timeout=5).stdout
+        if sys.platform == "win32":
+            return subprocess.run(["powershell", "-NoProfile", "-Command", "Get-Clipboard"],
+                                  capture_output=True, text=True, timeout=5).stdout
+        for cmd in (["xclip", "-selection", "clipboard", "-o"], ["xsel", "--clipboard", "--output"]):
+            try:
+                return subprocess.run(cmd, capture_output=True, text=True, timeout=5).stdout
+            except FileNotFoundError:
+                continue
+    except Exception:
+        return ""
+    return ""
+
+def looks_like_battle_log(text):
+    """Cheap sanity check so we don't load whatever else happens to be copied."""
+    if not text or len(text) < 200:
+        return False
+    if not re.search(r"'s Turn", text):
+        return False
+    return any(k in text for k in ("opening hand", "drew", "Prize card", "Active Spot"))
+
+def load_last_player():
+    try:
+        with open(LAST_PLAYER_FILE) as f:
+            return json.load(f).get("player", "")
+    except Exception:
+        return ""
+
+def save_last_player(name):
+    try:
+        with open(LAST_PLAYER_FILE, "w") as f:
+            json.dump({"player": name}, f)
+    except Exception:
+        pass
 
 # --- 4. CARD DATA LOOKUPS ---
 @st.cache_data(ttl=3600)
@@ -342,7 +415,7 @@ def analyze_turn_heuristics(actions, is_me, turn_num, player_turn_num):
 
 # --- 6. AI ANALYSIS (Hand-Aware & Decklist Locked) ---
 def get_advanced_ai_review(turns, target_user, api_key, stats, deck_dict, legal_marks=None):
-    if not api_key: return "⚠️ Missing API Key — enter your key in the sidebar.", {}, [], {}
+    if not api_key: return "⚠️ Missing API Key — enter your key in the sidebar.", {}, [], {}, {}
     try:
         client = anthropic.Anthropic(api_key=api_key)
 
@@ -361,7 +434,8 @@ CRITICAL RULES FOR ADVICE:
 4. Each player turn lists Hand at Start, Discard Pile, and Actions Taken. A card in the DISCARD PILE is NOT playable directly — it can only come back via a recovery card (e.g. energy/Pokemon recovery). Never tell the player to play or use a card that is in their discard pile unless they first recover it. Conversely, do not claim a card is "gone" if recovery cards are available to them.
 5. If you recommend a card, put its exact name in BRACKETS at the start of the line.
 6. If their turn was optimal, or if they had no better options in hand, reply with: "[None] Optimal play based on your hand."
-You are a strict, professional Pokemon TCG coach focusing on the current Standard meta. You NEVER hallucinate cards and ALWAYS read the player's actions before giving advice."""
+7. THE LESSON IS THE MOST IMPORTANT PART OF YOUR OUTPUT. Pick the ONE decision that most changed how this game went and teach it properly — depth on a single decision beats shallow notes on every turn. The PRINCIPLE must be transferable: state it so it applies in a future game with completely different cards. Do not put card names in the PRINCIPLE. If they played cleanly, still pick the most instructive moment and teach why that line was correct.
+You are a strict, professional Pokemon TCG coach focusing on the current Standard meta. You NEVER hallucinate cards and ALWAYS read the player's actions before giving advice. Your job is to make the player BETTER, not to narrate what happened."""
 
         prompt = f"""You are reviewing a match for '{target_user}'.
 PLAYER'S EXACT DECKLIST: [{deck_str}]
@@ -381,6 +455,16 @@ Turn 1: [Card Name] Explanation of what they should have done differently.
 Turn 2: [None] Optimal play based on your hand.
 ADVICE_END
 
+LESSON_START
+LESSON_TURN: <the single turn number where this player's decision mattered most>
+SITUATION: <what their board and hand looked like at that moment, and what was at stake — 1-2 sentences>
+YOU_PLAYED: <what they actually did — 1 sentence>
+COST: <what that concretely cost them in tempo, prizes, resources or board position — 1-2 sentences>
+BETTER_LINE: <the better play, step by step, naming the actual cards that were in their hand that turn>
+PRINCIPLE: <the transferable lesson stated generally, with NO card names, so it applies in future games>
+TELL: <a concrete cue for recognizing this same situation in a future game — 1 sentence>
+LESSON_END
+
 TAGS_START
 <One line per weakness category that genuinely applied this game, written as "Category: turn numbers" where the turn numbers are the ADVICE turns where that weakness showed up. Use ONLY these exact category names: Sequencing, Energy Management, Prize Trading, Bench Management, Overextension, Resource Management, Setup / Mulligan, Target Selection. Leave this section empty if they played cleanly. For example a game with sloppy sequencing on two turns and one energy misplay would be two lines reading "Sequencing: 4, 7" and "Energy Management: 2".>
 TAGS_END
@@ -390,7 +474,7 @@ MATCH DATA & HAND STATES:
 """
         response = client.messages.create(
             model="claude-opus-4-8",
-            max_tokens=4096,
+            max_tokens=6000,
             system=system_prompt,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -430,9 +514,10 @@ MATCH DATA & HAND STATES:
             weakness_tags = derive_weakness_tags(advice_dict)
 
         evidence = build_weakness_evidence(weakness_tags, tag_turns, advice_dict)
-        return summary, advice_dict, weakness_tags, evidence
+        lesson = parse_lesson(full_text)
+        return summary, advice_dict, weakness_tags, evidence, lesson
     except Exception as e:
-        return f"❌ AI Error: {str(e)}", {}, [], {}
+        return f"❌ AI Error: {str(e)}", {}, [], {}, {}
 
 # --- 6b. CONVERSATIONAL COACH (multi-turn follow-up chat) ---
 def ask_coach(api_key):
@@ -994,14 +1079,45 @@ if app_mode == "📈 My Progress":
     st.stop()
 
 # ===== MATCH ANALYZER MODE (default) =====
-log_input = st.text_area("Paste Battle Log Here:", height=150, placeholder="Wait for the game to finish, click 'Copy Battle Log' in PTCGL, and paste it here.")
+# One-click import: PTCG Live's "Copy Battle Log" puts the log on the clipboard,
+# and Streamlit runs locally, so we can read it straight out.
+imp_col, opt_col = st.columns([1, 2])
+with imp_col:
+    import_clicked = st.button("📋 Import from PTCG Live", type="primary")
+with opt_col:
+    auto_analyze = st.checkbox(
+        "Analyze immediately on import", value=True,
+        help="Runs the analysis as soon as a log is imported, using the last player you analyzed.")
+
+if import_clicked:
+    clip = read_clipboard()
+    if looks_like_battle_log(clip):
+        st.session_state["log_input"] = clip
+        if auto_analyze:
+            st.session_state["auto_run"] = True
+        st.rerun()
+    elif clip.strip():
+        st.warning("That doesn't look like a battle log. In PTCG Live, click **Copy Battle Log** after the game ends, then try again.")
+    else:
+        st.warning("Clipboard is empty (or unreadable). Click **Copy Battle Log** in PTCG Live first.")
+
+log_input = st.text_area(
+    "Battle Log:", height=150, key="log_input",
+    placeholder="Click 'Import from PTCG Live' above after copying the log in-game — or paste it here manually.")
 
 if log_input:
     players = sorted(list(set(re.findall(r"(.+)'s Turn", log_input))))
     if players:
-        target_user = st.selectbox("Select Player to Analyze:", players)
+        # Default to whoever you analyzed last, so repeat imports need no clicks.
+        remembered = load_last_player()
+        default_idx = players.index(remembered) if remembered in players else 0
+        target_user = st.selectbox("Select Player to Analyze:", players, index=default_idx)
 
-        if st.button("🚀 Execute Analysis Engine", type="primary"):
+        # Auto-run only fires when the remembered player is actually in this log.
+        auto_run = st.session_state.pop("auto_run", False) and remembered in players
+
+        if st.button("🚀 Execute Analysis Engine", type="primary") or auto_run:
+            save_last_player(target_user)
 
             # All log parsing lives in ptcg_parser.parse_game (unit-tested against a
             # real log in tests/test_parser.py).
@@ -1017,7 +1133,7 @@ if log_input:
                 legal_marks_now = get_legal_regulation_marks(api_key)
 
                 # --- Send to Hand-Aware AI ---
-                summary, advice_map, weakness_tags, weakness_evidence = get_advanced_ai_review(
+                summary, advice_map, weakness_tags, weakness_evidence, lesson = get_advanced_ai_review(
                     turns, target_user, api_key, stats, deck_dict, legal_marks_now)
 
                 # Data-driven rotation check (replaces the old hardcoded card list)
@@ -1041,6 +1157,7 @@ if log_input:
                     "turns": len(turns),
                     "weaknesses": weakness_tags,
                     "evidence": weakness_evidence,   # weakness -> the exact turns it happened
+                    "lesson": lesson,
                     "summary": summary if isinstance(summary, str) else "",
                 })
                 saved_to_history = True
@@ -1052,7 +1169,7 @@ if log_input:
                 "manual_outs": manual_outs, "user_decklist": user_decklist,
                 "deck_dict": deck_dict, "log_input": log_input, "target_user": target_user,
                 "legal_marks": sorted(legal_marks_now), "rotated_cards": rotated_cards,
-                "detected_deck": detected_matchup, "weaknesses": weakness_tags,
+                "detected_deck": detected_matchup, "weaknesses": weakness_tags, "lesson": lesson,
                 "saved_to_history": saved_to_history,
             }
             st.session_state.coach_context = {
@@ -1133,6 +1250,44 @@ if st.session_state.get("analysis"):
             else: st.success("All key cards accounted for!")
 
     with tab2:
+        # ---- The single teaching moment: depth on one decision beats six one-liners ----
+        lesson = a.get("lesson") or {}
+        if lesson:
+            lt_raw = lesson.get("lesson_turn", "")
+            lt_match = re.search(r"\d+", lt_raw)
+            lt = int(lt_match.group()) if lt_match else None
+            turn_obj = next((t for t in turns if t["number"] == lt), None)
+
+            st.subheader("🎓 The Lesson From This Game")
+            if lt:
+                st.caption(f"The decision that mattered most — **Turn {lt}**")
+
+            # Ground the lesson in the real state the player was looking at.
+            if turn_obj and turn_obj.get("is_me"):
+                hand = ", ".join(turn_obj["hand_snapshot"]) or "Empty / Unknown"
+                disc = ", ".join(turn_obj.get("discard_snapshot", [])) or "Empty"
+                st.markdown(
+                    f'<div class="hand-box">🃏 <b>Your hand at that moment:</b> {hand}'
+                    f'<br>🗑️ <b>Discard:</b> {disc}'
+                    f'<br>🎴 <b>Deck:</b> {turn_obj["deck_snapshot"]} cards</div>',
+                    unsafe_allow_html=True)
+
+            if lesson.get("situation"):
+                st.markdown(f"**The spot** — {lesson['situation']}")
+            if lesson.get("you_played"):
+                st.markdown(f"**What you played** — {lesson['you_played']}")
+            if lesson.get("cost"):
+                st.markdown(f"**What it cost you** — {lesson['cost']}")
+            if lesson.get("better_line"):
+                st.markdown(f'<div class="ai-box">✅ <b>The better line</b><br>{lesson["better_line"]}</div>',
+                            unsafe_allow_html=True)
+            if lesson.get("principle"):
+                st.success(f"🧠 **The principle:** {lesson['principle']}")
+            if lesson.get("tell"):
+                st.info(f"👀 **Spot it next time:** {lesson['tell']}")
+
+            st.divider()
+
         st.subheader("🤖 The Grandmaster's Verdict")
         st.markdown(f'<div class="ai-box">{summary}</div>', unsafe_allow_html=True)
 
