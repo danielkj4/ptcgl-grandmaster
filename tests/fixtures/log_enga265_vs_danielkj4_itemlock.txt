@@ -1,0 +1,253 @@
+Setup
+Enga265 chose heads for the opening coin flip.
+Enga265 won the coin toss.
+Enga265 decided to go second.
+Enga265 drew 7 cards for the opening hand.
+- 7 drawn cards.
+danielkj4 drew 7 cards for the opening hand.
+- 7 drawn cards.
+   • (me2_85) Battle Cage, (mee_2) Basic Fire Energy, (me3_81) Poké Pad, (me2-5_248) Drakloak, (me1_114) Boss's Orders, (sv5_144) Buddy-Buddy Poffin, (me5_36) Litwick
+Enga265 played (me2_14) Moltres to the Active Spot.
+Enga265 played (sv6_128) Dreepy to the Bench.
+danielkj4 played (me5_36) Litwick to the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (me3_88) Telepathic Psychic Energy.
+danielkj4 played (sv5_144) Buddy-Buddy Poffin.
+- danielkj4 drew 2 cards and played them to the Bench.
+   • (zsv10-5_40_ph) Elgyem, (sv6_80) Abra
+- danielkj4 shuffled their deck.
+danielkj4 attached (me3_88) Telepathic Psychic Energy to (sv6_80) Abra on the Bench.
+(me3_88) Telepathic Psychic Energy was activated.
+- danielkj4 drew 2 cards and played them to the Bench.
+   • (me1_54) Abra, (sv6_80) Abra
+- danielkj4 shuffled their deck.
+danielkj4 ended their turn.
+
+Enga265's Turn
+Enga265 drew a card.
+Enga265 played (sv8-5_4) Budew to the Bench.
+Enga265 played (sv8-5_101) Buddy-Buddy Poffin.
+- Enga265 drew (sv6_128) Dreepy and played it to the Bench.
+- Enga265 shuffled their deck.
+Enga265 played (sv6-5_87) Colress's Tenacity.
+- Enga265 drew 2 cards.
+   • (sv7_131) Area Zero Underdepths, (ec_13) Basic Psychic Energy
+- Enga265 shuffled their deck.
+Enga265 attached (ec_13) Basic Psychic Energy to (me2_14) Moltres in the Active Spot.
+Enga265 retreated (me2_14) Moltres to the Bench.
+- (ec_13) Basic Psychic Energy was discarded from Enga265's (me2_14) Moltres.
+Enga265's (sv8-5_4) Budew is now in the Active Spot.
+Enga265's (sv8-5_4) Budew used Itchy Pollen on danielkj4's (me5_36) Litwick for 10 damage.
+
+danielkj4's Turn
+danielkj4 drew (me2_94) Wondrous Patch.
+danielkj4 played (me1_114) Boss's Orders.
+- Enga265's (me2_14) Moltres was switched with Enga265's (sv8-5_4) Budew to become the Active Pokémon.
+Enga265's (me2_14) Moltres is now in the Active Spot.
+danielkj4 attached (mee_2) Basic Fire Energy to (me5_36) Litwick in the Active Spot.
+danielkj4 ended their turn.
+
+Enga265's Turn
+Enga265 drew a card.
+Enga265 played (me2-5_198) Poké Pad.
+- Enga265 drew (sv6_129) Drakloak.
+- Enga265 shuffled their deck.
+Enga265 evolved (sv6_128) Dreepy to (sv6_129) Drakloak on the Bench.
+Enga265 played (sv7_133) Crispin.
+- Enga265 drew (ec_13) Basic Psychic Energy.
+- Enga265 attached (ec_10) Basic Fire Energy to (sv6_129) Drakloak on the Bench.
+- Enga265 shuffled their deck.
+Enga265's (sv6_129) Drakloak used Recon Directive.
+- Enga265 drew a card.
+Enga265 attached (ec_13) Basic Psychic Energy to (sv6_129) Drakloak on the Bench.
+Enga265 played (me1_131) Ultra Ball.
+- Enga265 discarded 2 cards.
+   • (me2-5_196) Night Stretcher, (sv7_131) Area Zero Underdepths
+- Enga265 drew (sv8_76) Latias ex.
+- Enga265 shuffled their deck.
+Enga265 played (sv8_76) Latias ex to the Bench.
+Enga265 retreated (me2_14) Moltres to the Bench.
+Enga265's (sv8-5_4) Budew is now in the Active Spot.
+Enga265's (sv8-5_4) Budew used Itchy Pollen on danielkj4's (me5_36) Litwick for 10 damage.
+
+danielkj4's Turn
+danielkj4 drew (sv6_148) Enhanced Hammer.
+danielkj4 played (me2_85) Battle Cage to the Stadium spot.
+danielkj4 ended their turn.
+
+Enga265's Turn
+Enga265 drew a card.
+Enga265's (sv6_129) Drakloak used Recon Directive.
+- Enga265 drew a card.
+Enga265 attached (ec_13) Basic Psychic Energy to (sv6_128) Dreepy on the Bench.
+Enga265 played (me1_114) Boss's Orders.
+- danielkj4's (zsv10-5_40_ph) Elgyem was switched with danielkj4's (me5_36) Litwick to become the Active Pokémon.
+danielkj4's (zsv10-5_40_ph) Elgyem is now in the Active Spot.
+Enga265 retreated (sv8-5_4) Budew to the Bench.
+Enga265's (sv6_129) Drakloak is now in the Active Spot.
+Enga265 evolved (sv6_129) Drakloak to (sv6_130) Dragapult ex in the Active Spot.
+Enga265's (sv6_130) Dragapult ex used Jet Headbutt on danielkj4's (zsv10-5_40_ph) Elgyem for 70 damage.
+danielkj4's (zsv10-5_40_ph) Elgyem was Knocked Out!
+Enga265 took a Prize card.
+A card was added to Enga265's hand.
+danielkj4's (sv6_80) Abra is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (rsv10-5_84) Hilda.
+danielkj4 played (me3_81) Poké Pad.
+- danielkj4 drew (me1_55) Kadabra.
+- danielkj4 shuffled their deck.
+danielkj4 evolved (sv6_80) Abra to (me1_55) Kadabra on the Bench.
+danielkj4's (me1_55) Kadabra used Psychic Draw.
+- danielkj4 drew 2 cards.
+   • (me3_88) Telepathic Psychic Energy, (me1_114) Boss's Orders
+danielkj4 played (rsv10-5_84) Hilda.
+- danielkj4 drew 2 cards.
+   • (me1_55) Kadabra, (sv8_191) Enriching Energy
+- danielkj4 shuffled their deck.
+danielkj4 evolved (me1_54) Abra to (me1_55) Kadabra on the Bench.
+danielkj4's (me1_55) Kadabra used Psychic Draw.
+- danielkj4 drew 2 cards.
+   • (sv6_37) Lampent, (me2-5_142) Fezandipiti ex
+danielkj4 evolved (me5_36) Litwick to (sv6_37) Lampent on the Bench.
+danielkj4 played (me2-5_142) Fezandipiti ex to the Bench.
+danielkj4's (me2-5_142) Fezandipiti ex used Flip the Script.
+- danielkj4 drew 3 cards.
+   • (me2-5_207_ph) Team Rocket's Petrel, (me2_87) Dawn, (me1_56) Alakazam
+danielkj4 attached (sv8_191) Enriching Energy to (sv6_80) Abra in the Active Spot.
+(sv8_191) Enriching Energy was activated.
+- danielkj4 drew 4 cards.
+   • (sv6_38_ph) Chandelure, (me2_87) Dawn, (sm5_166) Crushing Hammer, (me1_125) Rare Candy
+danielkj4 played (sm5_166) Crushing Hammer.
+- danielkj4 flipped a coin and it landed on tails.
+danielkj4's (sv6_80) Abra used Teleporter.
+- danielkj4 shuffled 2 cards into their deck.
+   • (sv6_80) Abra, (sv8_191) Enriching Energy
+danielkj4's (sv6_37) Lampent is now in the Active Spot.
+danielkj4's (sv6_37) Lampent used Live Coal on Enga265's (sv6_130) Dragapult ex for 20 damage.
+
+Enga265's Turn
+Enga265 drew a card.
+Enga265 played (me1_114) Boss's Orders.
+- danielkj4's (me1_55) Kadabra was switched with danielkj4's (sv6_37) Lampent to become the Active Pokémon.
+danielkj4's (me1_55) Kadabra is now in the Active Spot.
+Enga265's (sv6_130) Dragapult ex used Phantom Dive on danielkj4's (me1_55) Kadabra for 200 damage.
+(me2_85) Battle Cage was activated.
+- Damage to (me1_55) Kadabra was prevented.
+(me2_85) Battle Cage was activated.
+- Damage to (me2-5_142) Fezandipiti ex was prevented.
+(me2_85) Battle Cage was activated.
+- Damage to (sv6_37) Lampent was prevented.
+danielkj4's (me1_55) Kadabra was Knocked Out!
+- 2 cards were discarded from danielkj4's (me1_55) Kadabra.
+   • (me3_88) Telepathic Psychic Energy, (sv6_80) Abra
+Enga265 took a Prize card.
+A card was added to Enga265's hand.
+danielkj4's (me1_55) Kadabra is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (sv6_155) Lana's Aid.
+danielkj4 evolved (me1_55) Kadabra to (me1_56) Alakazam in the Active Spot.
+danielkj4's (me1_56) Alakazam used Psychic Draw.
+- danielkj4 drew 3 cards.
+   • (mee_5) Basic Psychic Energy, (me1_56) Alakazam, (me2-5_196) Night Stretcher
+danielkj4's (me2-5_142) Fezandipiti ex used Flip the Script.
+- danielkj4 drew 3 cards.
+   • (me2_85) Battle Cage, (sv10_168) Sacred Ash, (me2-5_160) Dragapult ex
+danielkj4 evolved (sv6_37) Lampent to (sv6_38_ph) Chandelure on the Bench.
+danielkj4's (sv6_38_ph) Chandelure used Alluring Light.
+- danielkj4 drew (sv8_191) Enriching Energy.
+- danielkj4 drew a card.
+danielkj4 played (sv10_168) Sacred Ash.
+- danielkj4 shuffled 3 cards into their deck.
+   • (sv6_80) Abra, (me1_55) Kadabra, (zsv10-5_40_ph) Elgyem
+danielkj4 attached (me3_88) Telepathic Psychic Energy to (me1_56) Alakazam in the Active Spot.
+(me3_88) Telepathic Psychic Energy was activated.
+- danielkj4 drew 2 cards and played them to the Bench.
+   • (sv6_80) Abra, (zsv10-5_40_ph) Elgyem
+- danielkj4 shuffled their deck.
+danielkj4's (me1_56) Alakazam used Powerful Hand.
+- danielkj4 put 30 damage counters on danielkj4's (sv6_130) Dragapult ex.
+Enga265's (sv6_130) Dragapult ex was Knocked Out!
+- 4 cards were discarded from Enga265's (sv6_130) Dragapult ex.
+   • (ec_10) Basic Fire Energy, (ec_13) Basic Psychic Energy, (sv6_129) Drakloak, (sv6_128) Dreepy
+danielkj4 took 2 Prize cards.
+(me2-5_247) Dreepy was added to danielkj4's hand.
+(sv6_148) Enhanced Hammer was added to danielkj4's hand.
+Enga265's (sv8-5_4) Budew is now in the Active Spot.
+
+Enga265's Turn
+Enga265 drew a card.
+Enga265 played (sv7_133) Crispin.
+- Enga265 drew (ec_13) Basic Psychic Energy.
+- Enga265 attached (ec_10) Basic Fire Energy to (sv6_128) Dreepy on the Bench.
+- Enga265 shuffled their deck.
+Enga265 played (me1_131) Ultra Ball.
+- Enga265 discarded 2 cards.
+   • (me2-5_198) Poké Pad, (ec_13) Basic Psychic Energy
+- Enga265 drew (sv6_130) Dragapult ex.
+- Enga265 shuffled their deck.
+Enga265 played (sv4-5_89) Rare Candy.
+- Enga265 evolved (sv6_128) Dreepy to (sv6_130) Dragapult ex on the Bench.
+Enga265 retreated (sv8-5_4) Budew to the Bench.
+Enga265's (sv6_130) Dragapult ex is now in the Active Spot.
+Enga265's (sv6_130) Dragapult ex used Phantom Dive on danielkj4's (me1_56) Alakazam for 200 damage.
+(me2_85) Battle Cage was activated.
+- Damage to (me2-5_142) Fezandipiti ex was prevented.
+(me2_85) Battle Cage was activated.
+- Damage to (sv6_38_ph) Chandelure was prevented.
+(me2_85) Battle Cage was activated.
+- Damage to (sv6_80) Abra was prevented.
+(me2_85) Battle Cage was activated.
+- Damage to (zsv10-5_40_ph) Elgyem was prevented.
+danielkj4's (me1_56) Alakazam was Knocked Out!
+- 3 cards were discarded from danielkj4's (me1_56) Alakazam.
+   • (me3_88) Telepathic Psychic Energy, (me1_55) Kadabra, (me1_54) Abra
+Enga265 took a Prize card.
+A card was added to Enga265's hand.
+danielkj4's (sv6_80) Abra is now in the Active Spot.
+
+danielkj4's Turn
+danielkj4 drew (sm5_166) Crushing Hammer.
+danielkj4 played (me1_125) Rare Candy.
+- danielkj4 evolved (sv6_80) Abra to (me1_56) Alakazam in the Active Spot.
+danielkj4's (me1_56) Alakazam used Psychic Draw.
+- danielkj4 drew 3 cards.
+   • (me2-5_248) Drakloak, (me1_55) Kadabra, (rsv10-5_84) Hilda
+danielkj4 attached (mee_5) Basic Psychic Energy to (me1_56) Alakazam in the Active Spot.
+danielkj4's (me2-5_142) Fezandipiti ex used Flip the Script.
+- danielkj4 drew 3 cards.
+   • (mee_5) Basic Psychic Energy, (me1_54) Abra, (mee_5) Basic Psychic Energy
+danielkj4's (me1_56) Alakazam used Powerful Hand.
+- danielkj4 put 42 damage counters on danielkj4's (sv6_130) Dragapult ex.
+Enga265's (sv6_130) Dragapult ex was Knocked Out!
+- 3 cards were discarded from danielkj4's (sv6_130) Dragapult ex.
+   • (ec_13) Basic Psychic Energy, (ec_10) Basic Fire Energy, (sv6_128) Dreepy
+danielkj4 took 2 Prize cards.
+(me2-5_247) Dreepy was added to danielkj4's hand.
+(me1_125) Rare Candy was added to danielkj4's hand.
+Enga265's (sv8-5_4) Budew is now in the Active Spot.
+
+Enga265's Turn
+Enga265 drew a card.
+Enga265 played (sv6_128) Dreepy to the Bench.
+Enga265 played (me1_119) Lillie's Determination.
+- Enga265 drew 6 cards.
+Enga265 played (me2-5_76) Lillie's Clefairy ex to the Bench.
+Enga265 attached (ec_10) Basic Fire Energy to (me2-5_76) Lillie's Clefairy ex on the Bench.
+Enga265 didn't take an action in time.
+
+danielkj4's Turn
+danielkj4 drew (sv6_80) Abra.
+danielkj4 played (me1_114) Boss's Orders.
+- Enga265's (me2-5_76) Lillie's Clefairy ex was switched with Enga265's (sv8-5_4) Budew to become the Active Pokémon.
+Enga265's (me2-5_76) Lillie's Clefairy ex is now in the Active Spot.
+danielkj4's (me1_56) Alakazam used Powerful Hand.
+- danielkj4 put 46 damage counters on danielkj4's (me2-5_76) Lillie's Clefairy ex.
+Enga265's (me2-5_76) Lillie's Clefairy ex was Knocked Out!
+(ec_10) Basic Fire Energy was discarded from Enga265's (me2-5_76) Lillie's Clefairy ex.
+danielkj4 took 2 Prize cards.
+(sv5_144) Buddy-Buddy Poffin was added to danielkj4's hand.
+(sv5_144) Buddy-Buddy Poffin was added to danielkj4's hand.
+All Prize cards taken. danielkj4 wins.

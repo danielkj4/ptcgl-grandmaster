@@ -52,6 +52,27 @@ def _remove_one(bucket, card):
     return False
 
 
+# Matches "(set_code) Card Name" up to the next action word or punctuation.
+_CARD_MENTION_RE = re.compile(
+    r'\([a-z0-9][a-z0-9_\-]*\)\s+(.+?)(?=\s+(?:to|on|in|was|is|used|from|and|for|into)\b|[,.]|$)',
+    re.IGNORECASE)
+
+
+def extract_card_names(log_text):
+    """Every distinct card name mentioned anywhere in the log, both players'.
+
+    Used to fetch oracle text for opponent cards too — without it the coach has no
+    idea what an opponent's card does (e.g. Budew's Itchy Pollen item-lock) and
+    can't warn about effects that carry into the player's turn.
+    """
+    names = set()
+    for m in _CARD_MENTION_RE.finditer(log_text):
+        nm = clean_card_name(m.group(1))
+        if nm and len(nm) > 1:
+            names.add(nm)
+    return names
+
+
 # --------------------------------------------------------------------------
 # Event model: a line plus any card names listed on the bullet line(s) under it
 # --------------------------------------------------------------------------

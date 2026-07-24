@@ -18,6 +18,7 @@ from collections import Counter
 from ptcg_parser import (
     clean_card_name, parse_decklist, calculate_odds, track_prizes,
     detect_opponent_deck, detect_result, count_prizes, parse_game,
+    extract_card_names,
 )
 
 # --- 1. LOCAL STORAGE SETUP (Deck Manager) ---
@@ -285,31 +286,49 @@ def resolve_card_visual(key_card, deck_name=""):
 
 def generate_ai_context(turns):
     context = ""
+    prev_opp_cards = []   # Pokemon the opponent used an attack/ability with, last turn
     for t in turns:
         if t['is_me']:
             hand_str = ", ".join(t['hand_snapshot']) if t['hand_snapshot'] else "Empty"
             discard_str = ", ".join(t.get('discard_snapshot', [])) if t.get('discard_snapshot') else "Empty"
-            context += f"\nTurn {t['number']} (Player):\nHand at Start: [{hand_str}]\nDiscard Pile: [{discard_str}]\nActions Taken:\n"
+            context += f"\nTurn {t['number']} (Player):\n"
+            if prev_opp_cards:
+                context += (f"⚠️ CARRY-OVER CHECK: last turn the opponent used {', '.join(sorted(set(prev_opp_cards)))}. "
+                            f"Check those cards' oracle text for any effect lasting 'during your opponent's next turn' "
+                            f"(e.g. Item lock) — if present it restricts YOU this turn.\n")
+            context += f"Hand at Start: [{hand_str}]\nDiscard Pile: [{discard_str}]\nActions Taken:\n"
             for act in t['actions']: context += f"- {act}\n"
+            prev_opp_cards = []
         else:
             context += f"\nTurn {t['number']} (Opponent):\nActions Taken:\n"
             for act in t['actions']: context += f"- {act}\n"
+            # Which of the opponent's Pokemon used something this turn? (effect source)
+            prev_opp_cards = [clean_card_name(m) for m in
+                              re.findall(r"'s \([^)]*\) (.+?) used ", "\n".join(t['actions']))]
     return context
 
 # --- 4b. CARD ORACLE TEXT (Ground-truth card effects from pokemontcg.io) ---
 @st.cache_data(show_spinner=False)
 def fetch_card_text(card_name: str) -> str:
-    """Fetch a card's oracle text from pokemontcg.io. Cached across reruns."""
+    """Fetch a card's oracle text from pokemontcg.io. Cached across reruns.
+    Retries because the free API is flaky (intermittent timeouts / 500s)."""
     if not card_name or card_name.lower() == "none":
         return ""
+    clean_name = re.sub(r'[^a-zA-Z0-9\s\'-]', '', card_name).strip()
+    cards = []
+    for attempt in range(3):
+        try:
+            resp = requests.get(
+                "https://api.pokemontcg.io/v2/cards",
+                params={"q": f'name:"{clean_name}"', "orderBy": "-set.releaseDate", "pageSize": 1},
+                timeout=15,
+            )
+            cards = resp.json().get("data", [])
+            break
+        except Exception:
+            if attempt == 2:
+                return ""
     try:
-        clean_name = re.sub(r'[^a-zA-Z0-9\s\'-]', '', card_name).strip()
-        resp = requests.get(
-            "https://api.pokemontcg.io/v2/cards",
-            params={"q": f'name:"{clean_name}"', "orderBy": "-set.releaseDate", "pageSize": 1},
-            timeout=8,
-        )
-        cards = resp.json().get("data", [])
         if not cards:
             return ""
         c = cards[0]
@@ -335,6 +354,16 @@ def fetch_all_card_text(card_names) -> str:
     with ThreadPoolExecutor(max_workers=8) as pool:
         results = list(pool.map(fetch_card_text, names))
     return "\n".join(t for t in results if t)
+
+def build_card_reference(deck_dict, log_text=""):
+    """Oracle text for BOTH the player's deck and every card seen in the log, so the
+    coach knows what the opponent's cards do (e.g. an item-lock attack) — not just
+    the player's own deck. Without this the coach is blind to effects the opponent
+    imposes on the player's turn."""
+    names = set(deck_dict.keys())
+    if log_text:
+        names |= extract_card_names(log_text)
+    return fetch_all_card_text(names)
 
 # --- 4c. LIVE FORMAT LEGALITY (single source of truth for the current rotation) ---
 @st.cache_data(ttl=86400, show_spinner=False)
@@ -414,7 +443,7 @@ def analyze_turn_heuristics(actions, is_me, turn_num, player_turn_num):
     return recs
 
 # --- 6. AI ANALYSIS (Hand-Aware & Decklist Locked) ---
-def get_advanced_ai_review(turns, target_user, api_key, stats, deck_dict, legal_marks=None):
+def get_advanced_ai_review(turns, target_user, api_key, stats, deck_dict, legal_marks=None, log_text=""):
     if not api_key: return "⚠️ Missing API Key — enter your key in the sidebar.", {}, [], {}, {}
     try:
         client = anthropic.Anthropic(api_key=api_key)
@@ -422,8 +451,8 @@ def get_advanced_ai_review(turns, target_user, api_key, stats, deck_dict, legal_
         match_context = generate_ai_context(turns)
         deck_str = ", ".join(deck_dict.keys()) if deck_dict else "Unknown (Only use cards seen in hand)"
 
-        # NEW: fetch real card effects
-        card_reference = fetch_all_card_text(deck_dict.keys())
+        # Oracle text for BOTH players' cards — the opponent's effects matter too.
+        card_reference = build_card_reference(deck_dict, log_text)
 
         system_prompt = f"""You are a World-Class Pokemon TCG Coach reviewing a match.
 {format_legal_era(legal_marks)}
@@ -432,15 +461,16 @@ CRITICAL RULES FOR ADVICE:
 2. DO NOT suggest a card if it is not in the Player's Decklist or Hand.
 3. A card's effect is defined ONLY by the CARD ORACLE TEXT provided. NEVER guess or rely on memory for what a card does. If a card is not in the oracle text and its effect isn't shown in the log, do not speculate about its effect.
 4. Each player turn lists Hand at Start, Discard Pile, and Actions Taken. A card in the DISCARD PILE is NOT playable directly — it can only come back via a recovery card (e.g. energy/Pokemon recovery). Never tell the player to play or use a card that is in their discard pile unless they first recover it. Conversely, do not claim a card is "gone" if recovery cards are available to them.
-5. If you recommend a card, put its exact name in BRACKETS at the start of the line.
-6. If their turn was optimal, or if they had no better options in hand, reply with: "[None] Optimal play based on your hand."
-7. THE LESSON IS THE MOST IMPORTANT PART OF YOUR OUTPUT. Pick the ONE decision that most changed how this game went and teach it properly — depth on a single decision beats shallow notes on every turn. The PRINCIPLE must be transferable: state it so it applies in a future game with completely different cards. Do not put card names in the PRINCIPLE. If they played cleanly, still pick the most instructive moment and teach why that line was correct.
+5. OPPONENT EFFECTS THAT CARRY INTO THE PLAYER'S TURN: the CARD ORACLE TEXT covers the OPPONENT'S cards too. Some opponent attacks/abilities impose a restriction that lasts "during your opponent's next turn" — an Item lock, an Ability lock, "can't retreat", etc. When the match data shows a "⚠️ CARRY-OVER CHECK" note, read the oracle text of the named opponent cards: if one restricts this player, that restriction is ACTIVE this turn. NEVER recommend a play it forbids — e.g. do NOT tell the player to play an Item card on a turn where the opponent's previous attack locked Items. (Trainer cards are typed Item / Supporter / Stadium / Tool in their oracle text; an Item lock only blocks Items.)
+6. If you recommend a card, put its exact name in BRACKETS at the start of the line.
+7. If their turn was optimal, or if they had no better options in hand, reply with: "[None] Optimal play based on your hand."
+8. THE LESSON IS THE MOST IMPORTANT PART OF YOUR OUTPUT. Pick the ONE decision that most changed how this game went and teach it properly — depth on a single decision beats shallow notes on every turn. The PRINCIPLE must be transferable: state it so it applies in a future game with completely different cards. Do not put card names in the PRINCIPLE. If they played cleanly, still pick the most instructive moment and teach why that line was correct.
 You are a strict, professional Pokemon TCG coach focusing on the current Standard meta. You NEVER hallucinate cards and ALWAYS read the player's actions before giving advice. Your job is to make the player BETTER, not to narrate what happened."""
 
         prompt = f"""You are reviewing a match for '{target_user}'.
 PLAYER'S EXACT DECKLIST: [{deck_str}]
 
-CARD ORACLE TEXT (the ONLY source of truth for what each card does):
+CARD ORACLE TEXT (the ONLY source of truth for what each card does — includes BOTH the player's cards AND the opponent's):
 {card_reference if card_reference else "No oracle text available — reason only from the actions shown in the log."}
 
 Format EXACTLY like this (THIS IS JUST A TEMPLATE, DO NOT COPY THIS TEXT):
@@ -1012,6 +1042,120 @@ def render_progress(api_key):
         st.session_state.pop("progress_plan", None)
         st.rerun()
 
+# --- 6e. DECISION DRILL (commit to a play BEFORE seeing the answer) ---
+def _lesson_turn_obj(lesson, turns):
+    """The player's own turn object referenced by the lesson, or None."""
+    m = re.search(r"\d+", lesson.get("lesson_turn", ""))
+    if not m:
+        return None
+    n = int(m.group())
+    return next((t for t in turns if t["number"] == n and t.get("is_me")), None)
+
+def can_drill(lesson, turns):
+    """A drill needs a strong-line answer and a real own-turn to stage."""
+    return bool(lesson.get("better_line") and _lesson_turn_obj(lesson, turns))
+
+def _render_spot(lesson, turn_obj):
+    hand = ", ".join(turn_obj["hand_snapshot"]) or "Empty / Unknown"
+    disc = ", ".join(turn_obj.get("discard_snapshot", [])) or "Empty"
+    st.markdown(
+        f'<div class="hand-box">🃏 <b>Your hand:</b> {hand}'
+        f'<br>🗑️ <b>Discard:</b> {disc}'
+        f'<br>🎴 <b>Deck:</b> {turn_obj["deck_snapshot"]} cards</div>',
+        unsafe_allow_html=True)
+    if lesson.get("situation"):
+        st.markdown(f"**The spot** — {lesson['situation']}")
+
+def _render_lesson_answer(lesson):
+    if lesson.get("you_played"):
+        st.markdown(f"**What you actually played** — {lesson['you_played']}")
+    if lesson.get("cost"):
+        st.markdown(f"**What it cost you** — {lesson['cost']}")
+    if lesson.get("better_line"):
+        st.markdown(f'<div class="ai-box">✅ <b>The strong line</b><br>{lesson["better_line"]}</div>',
+                    unsafe_allow_html=True)
+    if lesson.get("principle"):
+        st.success(f"🧠 **The principle:** {lesson['principle']}")
+    if lesson.get("tell"):
+        st.info(f"👀 **Spot it next time:** {lesson['tell']}")
+
+def grade_drill(api_key, lesson, turn_obj, user_answer):
+    """Grade the player's proposed play against the strong line. Returns
+    (verdict, feedback) where verdict is STRONG / PARTIAL / OFF."""
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        hand = ", ".join(turn_obj["hand_snapshot"]) or "unknown"
+        prompt = f"""You are a Pokemon TCG coach grading a training drill. The player was shown a spot from their OWN game and asked what they'd play, without seeing the answer.
+
+SITUATION: {lesson.get('situation', '')}
+THEIR HAND THIS TURN: {hand}
+THE STRONG LINE (ideal answer): {lesson.get('better_line', '')}
+THE PRINCIPLE BEING TESTED: {lesson.get('principle', '')}
+
+THE PLAYER'S PROPOSED PLAY: "{user_answer}"
+
+Grade how well their proposed play matches the strong line and the principle.
+Begin your reply with EXACTLY one of these on its own line:
+VERDICT: STRONG
+VERDICT: PARTIAL
+VERDICT: OFF
+Then 2-4 sentences: what they got right, what they missed versus the strong line, and reinforce the principle. Be encouraging, specific, and concrete. Only reference cards in their hand or the situation — do not invent cards."""
+        resp = client.messages.create(
+            model="claude-opus-4-8", max_tokens=700,
+            messages=[{"role": "user", "content": prompt}])
+        text = resp.content[0].text
+        m = re.search(r"VERDICT:\s*(STRONG|PARTIAL|OFF)", text, re.IGNORECASE)
+        verdict = m.group(1).upper() if m else "PARTIAL"
+        body = re.sub(r"VERDICT:\s*(STRONG|PARTIAL|OFF)", "", text, count=1, flags=re.IGNORECASE).strip()
+        return verdict, body
+    except Exception as e:
+        return "PARTIAL", f"(Couldn't grade automatically: {e})"
+
+def render_drill(lesson, turns, api_key):
+    turn_obj = _lesson_turn_obj(lesson, turns)
+    lt = turn_obj["number"]
+    st.subheader("🎯 Decision Drill")
+    st.caption(f"Turn {lt} was the turning point of this game. Before you see the answer — what would YOU play here?")
+    _render_spot(lesson, turn_obj)
+
+    drill = st.session_state.get("drill", {})
+    if not drill.get("answered"):
+        with st.form("drill_form"):
+            ans = st.text_area("Your play — what do you do this turn?",
+                               placeholder='Describe your line, e.g. "search first with X to thin, then attach and attack ..."')
+            c1, c2 = st.columns(2)
+            submitted = c1.form_submit_button("Reveal & grade my play", type="primary")
+            skip = c2.form_submit_button("Just show the answer")
+        if submitted and ans.strip():
+            if not api_key:
+                st.warning("Enter your Anthropic API key in the sidebar to grade your answer.")
+            else:
+                with st.spinner("Grading your decision..."):
+                    verdict, body = grade_drill(api_key, lesson, turn_obj, ans)
+                st.session_state.drill = {"answered": True, "answer": ans, "verdict": verdict, "grade": body}
+                st.rerun()
+        elif submitted:
+            st.warning("Type what you'd play first.")
+        elif skip:
+            st.session_state.drill = {"answered": True, "answer": None}
+            st.rerun()
+    else:
+        if drill.get("answer"):
+            st.markdown(f"**Your play:** {drill['answer']}")
+            v, grade = drill.get("verdict", "PARTIAL"), drill.get("grade", "")
+            if v == "STRONG":
+                st.success(f"✅ **Strong play.** {grade}")
+            elif v == "OFF":
+                st.error(f"❌ **Missed it.** {grade}")
+            else:
+                st.warning(f"⚠️ **Partly there.** {grade}")
+        st.divider()
+        st.markdown("#### 🎓 The Lesson")
+        _render_lesson_answer(lesson)
+        if st.button("↺ Try this drill again"):
+            st.session_state.drill = {}
+            st.rerun()
+
 # --- 7. MAIN APP LOOP ---
 setup_ui()
 st.title("🔮 PTCGL Grandmaster Engine")
@@ -1134,7 +1278,7 @@ if log_input:
 
                 # --- Send to Hand-Aware AI ---
                 summary, advice_map, weakness_tags, weakness_evidence, lesson = get_advanced_ai_review(
-                    turns, target_user, api_key, stats, deck_dict, legal_marks_now)
+                    turns, target_user, api_key, stats, deck_dict, legal_marks_now, log_text=log_input)
 
                 # Data-driven rotation check (replaces the old hardcoded card list)
                 rotated_cards = find_rotated_cards(deck_dict, legal_marks_now)
@@ -1175,12 +1319,13 @@ if log_input:
             st.session_state.coach_context = {
                 "match_context": generate_ai_context(turns),
                 "deck_str": ", ".join(deck_dict.keys()) if deck_dict else "Unknown",
-                "card_reference": fetch_all_card_text(deck_dict.keys()),
+                "card_reference": build_card_reference(deck_dict, log_input),
                 "target_user": target_user,
                 "legal_marks": sorted(legal_marks_now),
             }
-            # Fresh conversation for each new analysis.
+            # Fresh conversation and a fresh (unanswered) drill for each new analysis.
             st.session_state.coach_messages = []
+            st.session_state.drill = {}
     else:
         st.error("Log Format Error: Paste a complete battle log to begin.")
 
@@ -1250,42 +1395,19 @@ if st.session_state.get("analysis"):
             else: st.success("All key cards accounted for!")
 
     with tab2:
-        # ---- The single teaching moment: depth on one decision beats six one-liners ----
+        # ---- The teaching moment: a drill you commit to, or a static lesson ----
         lesson = a.get("lesson") or {}
-        if lesson:
-            lt_raw = lesson.get("lesson_turn", "")
-            lt_match = re.search(r"\d+", lt_raw)
-            lt = int(lt_match.group()) if lt_match else None
-            turn_obj = next((t for t in turns if t["number"] == lt), None)
-
+        if can_drill(lesson, turns):
+            render_drill(lesson, turns, api_key)
+            st.divider()
+        elif lesson:
             st.subheader("🎓 The Lesson From This Game")
-            if lt:
-                st.caption(f"The decision that mattered most — **Turn {lt}**")
-
-            # Ground the lesson in the real state the player was looking at.
-            if turn_obj and turn_obj.get("is_me"):
-                hand = ", ".join(turn_obj["hand_snapshot"]) or "Empty / Unknown"
-                disc = ", ".join(turn_obj.get("discard_snapshot", [])) or "Empty"
-                st.markdown(
-                    f'<div class="hand-box">🃏 <b>Your hand at that moment:</b> {hand}'
-                    f'<br>🗑️ <b>Discard:</b> {disc}'
-                    f'<br>🎴 <b>Deck:</b> {turn_obj["deck_snapshot"]} cards</div>',
-                    unsafe_allow_html=True)
-
-            if lesson.get("situation"):
+            turn_obj = _lesson_turn_obj(lesson, turns)
+            if turn_obj:
+                _render_spot(lesson, turn_obj)
+            elif lesson.get("situation"):
                 st.markdown(f"**The spot** — {lesson['situation']}")
-            if lesson.get("you_played"):
-                st.markdown(f"**What you played** — {lesson['you_played']}")
-            if lesson.get("cost"):
-                st.markdown(f"**What it cost you** — {lesson['cost']}")
-            if lesson.get("better_line"):
-                st.markdown(f'<div class="ai-box">✅ <b>The better line</b><br>{lesson["better_line"]}</div>',
-                            unsafe_allow_html=True)
-            if lesson.get("principle"):
-                st.success(f"🧠 **The principle:** {lesson['principle']}")
-            if lesson.get("tell"):
-                st.info(f"👀 **Spot it next time:** {lesson['tell']}")
-
+            _render_lesson_answer(lesson)
             st.divider()
 
         st.subheader("🤖 The Grandmaster's Verdict")

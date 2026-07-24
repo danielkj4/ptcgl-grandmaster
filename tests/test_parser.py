@@ -10,6 +10,7 @@ Ground truth for tests/fixtures/log_tigrao95_vs_danielkj4.txt, verified by hand:
   * danielkj4 mulliganed, so their post-mulligan opening hand is NOT logged.
 """
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -178,8 +179,43 @@ check_true("our own KO'd cards still tracked",
 check_true("deck stays non-negative", all(t['deck_snapshot'] >= 0 for t in turns2),
            f"min={min(t['deck_snapshot'] for t in turns2)}")
 
+# ==========================================================================
+# Third real log: opponent runs Budew (Itchy Pollen = Item lock). The coach was
+# blind to it because oracle text was only fetched for the player's own deck.
+# extract_card_names must surface opponent cards so their effects reach the model.
+# ==========================================================================
+from ptcg_parser import extract_card_names  # noqa: E402
+
+FIXTURE3 = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "fixtures", "log_enga265_vs_danielkj4_itemlock.txt")
+LOG3 = open(FIXTURE3, encoding="utf-8").read()
+
+print("\n=== LOG 3: Enga265 (item-lock Budew) vs danielkj4 ===")
+print("\n--- opponent card names must be extractable for oracle lookup ---")
+names3 = extract_card_names(LOG3)
+check_true("Budew (the item-lock card) is extracted", "Budew" in names3, str(sorted(names3))[:80])
+check_true("opponent attackers extracted (Dragapult ex)", "Dragapult ex" in names3, "")
+check_true("player cards still extracted (Alakazam)", "Alakazam" in names3, "")
+check_true("card-code prefixes stripped (no parens leak)",
+           not any("(" in n for n in names3), "")
+
+print("\n--- carry-over effect detection (mirrors generate_ai_context) ---")
+t3 = parse_game(LOG3, ME)
+prev, carry_turns = [], []
+for t in t3:
+    if t["is_me"]:
+        if prev:
+            carry_turns.append((t["number"], sorted(set(prev))))
+        prev = []
+    else:
+        prev = [clean_card_name(x) for x in
+                re.findall(r"'s \([^)]*\) (.+?) used ", "\n".join(t["actions"]))]
+budew_turns = [tn for tn, cards in carry_turns if "Budew" in cards]
+check_true("Budew flagged as active on the player's next turn(s)",
+           len(budew_turns) >= 2, f"flagged on player turns {budew_turns}")
+
 print()
 if _failures:
     print(f"❌ {len(_failures)} FAILING: {_failures}")
     sys.exit(1)
-print("✅ All parser tests passed (2 real logs).")
+print("✅ All parser tests passed (3 real logs).")
