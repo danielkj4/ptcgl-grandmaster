@@ -944,12 +944,10 @@ def render_progress(api_key):
     wins = sum(1 for g in history if g.get("result") == "Win")
     losses = sum(1 for g in history if g.get("result") == "Loss")
     known = wins + losses
-    avg_acc = round(sum(g.get("accuracy", 0) for g in history) / total) if total else 0
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2 = st.columns(2)
     c1.metric("Games Tracked", total)
     c2.metric("Record (detected)", f"{wins}–{losses}" + (f"  ·  {round(100 * wins / known)}%" if known else ""))
-    c3.metric("Avg Engine Accuracy", f"{avg_acc}%")
 
     # --- Recurring weaknesses ---
     st.divider()
@@ -1033,7 +1031,7 @@ def render_progress(api_key):
         badge = {"Win": "🟢", "Loss": "🔴"}.get(result, "⚪")
         st.markdown(
             f"{badge} **{g.get('date', '?')}** — vs {g.get('opponent_deck', 'Unknown')} — "
-            f"**{result}** · Accuracy {g.get('accuracy', 0)}% · Weaknesses: {wtags}"
+            f"**{result}** · Weaknesses: {wtags}"
         )
 
     st.divider()
@@ -1269,8 +1267,7 @@ if log_input:
                                target_card=target_card, manual_outs=manual_outs)
 
             with st.spinner("🧠 AI Coach is evaluating board states and hand resources..."):
-                accuracy = int((sum(1 for t in turns if t['is_me'] and t['score'] > 0) / len(turns)) * 100) if turns else 0
-                stats = {"accuracy": accuracy, "prizes_taken": count_prizes(log_input, target_user)}
+                stats = {"prizes_taken": count_prizes(log_input, target_user)}
 
                 # Determine the current legal regulation marks once, then reuse everywhere
                 # (the coach prompt, the rotation check, and the saved context all share it).
@@ -1297,7 +1294,6 @@ if log_input:
                     "opponent_deck": detected_matchup,
                     "result": game_result,
                     "prizes_taken": stats["prizes_taken"],
-                    "accuracy": accuracy,
                     "turns": len(turns),
                     "weaknesses": weakness_tags,
                     "evidence": weakness_evidence,   # weakness -> the exact turns it happened
@@ -1309,7 +1305,7 @@ if log_input:
             # Persist everything so the page (and the Coach chat) survive Streamlit reruns.
             st.session_state.analysis = {
                 "turns": turns, "summary": summary, "advice_map": advice_map,
-                "stats": stats, "accuracy": accuracy, "target_card": target_card,
+                "stats": stats, "target_card": target_card,
                 "manual_outs": manual_outs, "user_decklist": user_decklist,
                 "deck_dict": deck_dict, "log_input": log_input, "target_user": target_user,
                 "legal_marks": sorted(legal_marks_now), "rotated_cards": rotated_cards,
@@ -1336,7 +1332,6 @@ if st.session_state.get("analysis"):
     summary = a["summary"]
     advice_map = a["advice_map"]
     stats = a["stats"]
-    accuracy = a["accuracy"]
     target_card = a["target_card"]
     manual_outs = a["manual_outs"]
     user_decklist = a["user_decklist"]
@@ -1348,7 +1343,7 @@ if st.session_state.get("analysis"):
 
     with tab1:
         st.subheader("Match Vital Stats")
-        c1, c2, c3, c4 = st.columns(4)
+        c1, c2, c3 = st.columns(3)
 
         final_deck_size = next((t["deck_snapshot"] for t in reversed(turns) if t["is_me"]), 45)
         final_outs = next((t["outs_snapshot"] for t in reversed(turns) if t["is_me"]), manual_outs)
@@ -1359,11 +1354,10 @@ if st.session_state.get("analysis"):
             c1.metric("Top Deck Odds", f"{calculate_odds(final_deck_size, manual_outs, 1)}%")
 
         c2.metric("Prizes Taken", f"{stats['prizes_taken']}/6")
-        c3.metric("Engine Accuracy", f"{accuracy}%")
 
         # Dynamic Opponent Detection Output!
         detected_deck = a.get("detected_deck") or detect_opponent_deck(log_input, target_user)
-        c4.metric("Detected Matchup", detected_deck)
+        c3.metric("Detected Matchup", detected_deck)
 
         # Data-driven rotation check on the loaded deck.
         rotated_cards = a.get("rotated_cards", [])
