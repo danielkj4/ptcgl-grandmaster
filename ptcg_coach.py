@@ -18,7 +18,7 @@ from collections import Counter
 from ptcg_parser import (
     clean_card_name, parse_decklist, calculate_odds, track_prizes,
     detect_opponent_deck, detect_result, count_prizes, parse_game,
-    extract_card_names,
+    extract_card_names, parse_board_states,
 )
 
 # --- 1. LOCAL STORAGE SETUP (Deck Manager) ---
@@ -219,28 +219,51 @@ def save_last_player(name):
         pass
 
 # --- 4. CARD DATA LOOKUPS ---
+def _pokemontcg_cards(params):
+    """One pokemontcg.io /cards request with retries (the free API is flaky)."""
+    for attempt in range(3):
+        try:
+            r = requests.get("https://api.pokemontcg.io/v2/cards", params=params, timeout=15)
+            return r.json().get("data", [])
+        except Exception:
+            if attempt == 2:
+                return []
+    return []
+
+def _code_to_set_number(code):
+    """PTCGL set-code -> (set_id, number). '(sv5_129)' -> ('sv5', '129').
+    Format is <set>_<number>[_suffix]; the set part may contain hyphens."""
+    if not code:
+        return None, None
+    parts = code.split("_")
+    if len(parts) < 2:
+        return None, None
+    num = re.match(r"\d+", parts[1])
+    return (parts[0], num.group()) if num else (None, None)
+
 @st.cache_data(ttl=3600)
-def get_card_meta(card_name):
-    """Return (image_url, regulation_mark) for the newest printing of a card.
-    regulation_mark is the single letter printed on the card (e.g. 'H'), or None."""
+def get_card_meta(card_name, code=None):
+    """Return (image_url, regulation_mark). If a PTCGL set-code is given, look up
+    the EXACT printing that was played (set + number) so the replay shows the right
+    card art — not just the newest printing that shares the name. Falls back to a
+    name search when the code's set isn't in the database."""
     if not card_name or card_name.lower() == "none":
         return None, None
-    try:
-        clean_name = re.sub(r'[^a-zA-Z0-9\s\'-]', '', card_name).strip()
-        response = requests.get(
-            'https://api.pokemontcg.io/v2/cards',
-            params={"q": f'name:"{clean_name}"', "orderBy": "-set.releaseDate", "pageSize": 1},
-            timeout=8,
-        )
-        data = response.json().get('data', [])
+    # 1) exact card by set + number
+    setid, num = _code_to_set_number(code)
+    if setid and num:
+        data = _pokemontcg_cards({"q": f"set.id:{setid} number:{num}", "pageSize": 1})
         if data:
-            return data[0].get('images', {}).get('small'), data[0].get('regulationMark')
-    except Exception:
-        return None, None
+            return data[0].get("images", {}).get("small"), data[0].get("regulationMark")
+    # 2) fall back to the newest printing by name
+    clean_name = re.sub(r'[^a-zA-Z0-9\s\'-]', '', card_name).strip()
+    data = _pokemontcg_cards({"q": f'name:"{clean_name}"', "orderBy": "-set.releaseDate", "pageSize": 1})
+    if data:
+        return data[0].get("images", {}).get("small"), data[0].get("regulationMark")
     return None, None
 
-def get_card_image(card_name):
-    return get_card_meta(card_name)[0]
+def get_card_image(card_name, code=None):
+    return get_card_meta(card_name, code)[0]
 
 def _name_candidates(*raws):
     """Generate progressively looser name variants to try against the card DB —
@@ -1154,6 +1177,117 @@ def render_drill(lesson, turns, api_key):
             st.session_state.drill = {}
             st.rerun()
 
+# --- 6f. VISUAL REPLAY (scrub through the game board turn by turn) ---
+def _poke_caption(poke):
+    bits = []
+    if poke.get("energy"):
+        bits.append(f"⚡{poke['energy']}")
+    if poke.get("damage"):
+        bits.append(f"💥{poke['damage']}")
+    return "  ".join(bits)
+
+def _render_poke(poke, width, show_name):
+    if not poke:
+        st.caption("— empty —")
+        return
+    img = get_card_image(poke["name"], poke.get("code"))
+    if img:
+        st.image(img, width=width)
+    cap = (poke["name"] + "  " if show_name else "") + _poke_caption(poke)
+    st.caption(cap.strip() or poke["name"])
+
+def _render_board(board, title, highlight=False):
+    head = f"{'🟢 ' if highlight else ''}**{title}** · 🏆 {board['prizes']} prize(s) left"
+    st.markdown(head)
+    st.caption("Active")
+    _render_poke(board.get("active"), 120, show_name=True)
+    bench = board.get("bench", [])
+    st.caption(f"Bench ({len(bench)}/5)")
+    if bench:
+        cols = st.columns(5)
+        for i, p in enumerate(bench[:5]):
+            with cols[i]:
+                _render_poke(p, 70, show_name=False)
+
+def _prewarm_board_images(board_states):
+    """Fetch every board Pokemon's image in parallel once (by exact set-code), so the
+    per-turn render is all cache hits instead of a dozen sequential flaky API calls."""
+    pairs = set()
+    for s in board_states:
+        for b in s["boards"].values():
+            for p in ([b.get("active")] + b.get("bench", [])):
+                if p and p.get("name"):
+                    pairs.add((p["name"], p.get("code") or ""))
+    if pairs:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            list(pool.map(lambda nc: get_card_image(nc[0], nc[1] or None), pairs))
+
+def render_replay(a):
+    board_states = a.get("board_states") or []
+    if not board_states:
+        st.info("No board data for this game.")
+        return
+    target_user = a["target_user"]
+    advice_map = a.get("advice_map", {})
+    lesson = a.get("lesson") or {}
+    lt_m = re.search(r"\d+", lesson.get("lesson_turn", ""))
+    lesson_turn = int(lt_m.group()) if lt_m else None
+
+    with st.spinner("Loading card images..."):
+        _prewarm_board_images(board_states)
+
+    st.caption("Step through the game. Each step shows the board **after** that turn. "
+               "Positions, evolutions and prizes are reconstructed from the log; "
+               "damage counters are approximate.")
+
+    # Turn navigation via Prev/Next buttons (state persists across reruns).
+    n = len(board_states)
+    if "replay_idx" not in st.session_state or not (0 <= st.session_state.replay_idx < n):
+        st.session_state.replay_idx = n - 1
+    idx = st.session_state.replay_idx
+
+    nav_prev, nav_lbl, nav_next = st.columns([1, 3, 1])
+    with nav_prev:
+        if st.button("◀ Previous", disabled=(idx == 0), use_container_width=True):
+            st.session_state.replay_idx = idx - 1
+            st.rerun()
+    with nav_next:
+        if st.button("Next ▶", disabled=(idx == n - 1), use_container_width=True):
+            st.session_state.replay_idx = idx + 1
+            st.rerun()
+
+    snap = board_states[idx]
+    tn = snap["number"]
+    nav_lbl.markdown(
+        f"<div style='text-align:center;font-size:1.1rem'><b>Turn {snap['number']} — {snap['player']}</b>"
+        f"<br><span style='opacity:0.6'>{idx + 1} of {n}</span></div>",
+        unsafe_allow_html=True)
+
+    if lesson_turn == tn:
+        st.markdown('<div class="ai-box">🎓 <b>This was the turning point of the game</b> — see the '
+                    'AI Coach Summary tab for the lesson and drill.</div>', unsafe_allow_html=True)
+
+    boards = snap["boards"]
+    opp = next((p for p in boards if p != target_user), None)
+    you_col, opp_col = st.columns(2)
+    with you_col:
+        _render_board(boards[target_user], f"You ({target_user})",
+                      highlight=(snap["player"] == target_user))
+    with opp_col:
+        if opp:
+            _render_board(boards[opp], f"Opponent ({opp})",
+                          highlight=(snap["player"] == opp))
+
+    # Coaching overlay for this turn, if it was yours and has advice.
+    if tn in advice_map:
+        st.divider()
+        ad = advice_map[tn]
+        if "optimal" in ad["text"].lower():
+            st.success(f"✅ Turn {tn}: {ad['text']}")
+        else:
+            st.markdown(f'<div class="ai-box">🧠 <b>Coach on Turn {tn}:</b> {ad["text"]}</div>',
+                        unsafe_allow_html=True)
+
 # --- 7. MAIN APP LOOP ---
 setup_ui()
 st.title("🔮 PTCGL Grandmaster Engine")
@@ -1261,10 +1395,10 @@ if log_input:
         if st.button("🚀 Execute Analysis Engine", type="primary") or auto_run:
             save_last_player(target_user)
 
-            # All log parsing lives in ptcg_parser.parse_game (unit-tested against a
-            # real log in tests/test_parser.py).
+            # All log parsing lives in ptcg_parser (unit-tested against real logs).
             turns = parse_game(log_input, target_user, deck_dict=deck_dict,
                                target_card=target_card, manual_outs=manual_outs)
+            board_states = parse_board_states(log_input)
 
             with st.spinner("🧠 AI Coach is evaluating board states and hand resources..."):
                 stats = {"prizes_taken": count_prizes(log_input, target_user)}
@@ -1310,6 +1444,7 @@ if log_input:
                 "deck_dict": deck_dict, "log_input": log_input, "target_user": target_user,
                 "legal_marks": sorted(legal_marks_now), "rotated_cards": rotated_cards,
                 "detected_deck": detected_matchup, "weaknesses": weakness_tags, "lesson": lesson,
+                "board_states": board_states,
                 "saved_to_history": saved_to_history,
             }
             st.session_state.coach_context = {
@@ -1319,9 +1454,10 @@ if log_input:
                 "target_user": target_user,
                 "legal_marks": sorted(legal_marks_now),
             }
-            # Fresh conversation and a fresh (unanswered) drill for each new analysis.
+            # Fresh conversation, drill, and replay position for each new analysis.
             st.session_state.coach_messages = []
             st.session_state.drill = {}
+            st.session_state.pop("replay_idx", None)
     else:
         st.error("Log Format Error: Paste a complete battle log to begin.")
 
@@ -1339,7 +1475,8 @@ if st.session_state.get("analysis"):
     log_input = a["log_input"]
     target_user = a["target_user"]
 
-    tab1, tab2, tab3 = st.tabs(["📊 Match Overview", "🧠 AI Coach Summary", "⚔️ Turn-by-Turn Analysis"])
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["📊 Match Overview", "🧠 AI Coach Summary", "⚔️ Turn-by-Turn Analysis", "🎬 Replay"])
 
     with tab1:
         st.subheader("Match Vital Stats")
@@ -1468,3 +1605,7 @@ if st.session_state.get("analysis"):
                 st.divider()
                 st.markdown("**Actions Taken:**")
                 for act in t['actions']: st.text(f"• {act}")
+
+    with tab4:
+        st.subheader("🎬 Game Replay")
+        render_replay(a)

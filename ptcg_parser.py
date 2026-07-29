@@ -90,6 +90,17 @@ def _split_card_list(bullet_text):
     return out
 
 
+def _split_card_tokens(bullet_text):
+    """Like _split_card_list but keeps the set-code: [(code, name), ...].
+    Board reconstruction needs codes to match a Pokemon across turns."""
+    out = []
+    for piece in bullet_text.lstrip('•').split(','):
+        m = re.search(r'\(([a-z0-9][a-z0-9_\-]*)\)\s*(.+)', piece.strip(), re.I)
+        if m:
+            out.append((m.group(1), clean_card_name(m.group(2)) or m.group(2).strip()))
+    return out
+
+
 def parse_events(log_text):
     """Turn raw log lines into events: {'raw', 'text', 'level', 'cards'}.
 
@@ -105,11 +116,12 @@ def parse_events(log_text):
             cards = _split_card_list(s)
             if cards and events:
                 events[-1]['cards'].extend(cards)
+                events[-1]['card_tokens'].extend(_split_card_tokens(s))
             continue
         if s.startswith('- '):
-            events.append({'raw': s, 'text': s[2:].strip(), 'level': 'sub', 'cards': []})
+            events.append({'raw': s, 'text': s[2:].strip(), 'level': 'sub', 'cards': [], 'card_tokens': []})
         else:
-            events.append({'raw': s, 'text': s, 'level': 'top', 'cards': []})
+            events.append({'raw': s, 'text': s, 'level': 'top', 'cards': [], 'card_tokens': []})
     return events
 
 
@@ -502,3 +514,246 @@ def parse_game(log_text, target_user, deck_dict=None, target_card="None", manual
     if cur:
         turns.append(cur)
     return turns
+
+
+# --------------------------------------------------------------------------
+# Board-state reconstruction (for a visual replay)
+#
+# Rebuilds the full board for BOTH players after each turn: active + benched
+# Pokemon, energy counts, damage, prizes remaining. Positions / energy / prizes
+# are reliable; damage is best-effort (prevention, weakness and healing make
+# exact HP hard, so treat damage as approximate).
+#
+# The load-bearing signal is "<player>'s (code) Name is now in the Active Spot",
+# which the log emits after every retreat / gust / KO-replacement / switch — so
+# we don't have to model each of those separately.
+# --------------------------------------------------------------------------
+_CODE = r'[a-z0-9][a-z0-9_\-]*'
+
+
+def _new_board():
+    return {"active": None, "bench": [], "prizes": 6}
+
+
+def _mk_poke(code, name):
+    return {"code": code, "name": clean_card_name(name) or name.strip(),
+            "energy": 0, "damage": 0}
+
+
+def _board_find(board, code):
+    """Find a Pokemon by set-code on a board. Returns (poke, 'active'|'bench'|None)."""
+    if board["active"] and board["active"]["code"] == code:
+        return board["active"], "active"
+    for p in board["bench"]:
+        if p["code"] == code:
+            return p, "bench"
+    return None, None
+
+
+def _find_anywhere(boards, code):
+    for owner, b in boards.items():
+        p, loc = _board_find(b, code)
+        if p:
+            return owner, p, loc
+    return None, None, None
+
+
+def _copy_board(b):
+    return {
+        "active": dict(b["active"]) if b["active"] else None,
+        "bench": [dict(p) for p in b["bench"]],
+        "prizes": b["prizes"],
+    }
+
+
+def _set_active(board, code, name):
+    """Make the coded Pokemon this board's active; bench the current active."""
+    poke, loc = _board_find(board, code)
+    if loc == "bench":
+        board["bench"].remove(poke)
+    if poke is None:
+        poke = _mk_poke(code, name)
+    if board["active"] and board["active"]["code"] != code:
+        board["bench"].append(board["active"])
+    board["active"] = poke
+
+
+def _apply_board_event(ev, boards, ctx):
+    """Mutate both boards for one event. ctx carries cross-event state:
+      ctx['last_dmg'] = (owner, code, amount) to undo on a 'prevented' line;
+      ctx['last_used'] = code of the last Pokemon that used an attack/ability
+                         (so a self-shuffle like Run Away Draw / Teleporter can be
+                         removed from the board, unlike Sacred Ash's discard-shuffle).
+    """
+    text, cards = ev['text'], ev['cards']
+
+    # Remember which Pokemon just used something (source of any following effect).
+    um = re.search(fr"'s \(({_CODE})\) .+? used ", text)
+    if um:
+        ctx['last_used'] = um.group(1)
+
+    # --- Placement ---
+    m = re.match(fr"^(.+?) played \(({_CODE})\) (.+?) to the Active Spot\.$", text)
+    if m:
+        boards.setdefault(m.group(1), _new_board())["active"] = _mk_poke(m.group(2), m.group(3))
+        return
+    m = re.match(fr"^(.+?) played \(({_CODE})\) (.+?) to the Bench\.$", text)
+    if m:
+        boards.setdefault(m.group(1), _new_board())["bench"].append(_mk_poke(m.group(2), m.group(3)))
+        return
+    # "X drew N cards and played them to the Bench" (+ bullet list) / single-card form
+    m = re.match(fr"^(.+?) drew \d+ cards? and played (?:them|it) to the Bench", text)
+    if m and (ev.get("card_tokens") or cards):
+        b = boards.setdefault(m.group(1), _new_board())
+        tokens = ev.get("card_tokens") or [("", nm) for nm in cards]
+        for code, nm in tokens:
+            b["bench"].append(_mk_poke(code, nm))
+        return
+    m = re.match(fr"^(.+?) drew \(({_CODE})\) (.+?) and played it to the Bench", text)
+    if m:
+        boards.setdefault(m.group(1), _new_board())["bench"].append(_mk_poke(m.group(2), m.group(3)))
+        return
+
+    # --- Evolution (keep the energy/damage already on the Pokemon) ---
+    m = re.match(fr"^(.+?) evolved \(({_CODE})\) .+? to \(({_CODE})\) (.+?) (?:on the Bench|in the Active Spot)\.$", text)
+    if m:
+        owner, from_code, to_code, to_name = m.group(1), m.group(2), m.group(3), m.group(4)
+        poke, _ = _board_find(boards.setdefault(owner, _new_board()), from_code)
+        if poke:
+            poke["code"], poke["name"] = to_code, clean_card_name(to_name) or to_name
+        return
+
+    # --- Energy attach (Tools are attached too; only count Energy cards) ---
+    m = re.match(fr"^(.+?) attached \(({_CODE})\) (.+?) to \(({_CODE})\) (.+?)(?: in the Active Spot| on the Bench)?\.$", text)
+    if m and "Energy" in m.group(3):
+        poke, _ = _board_find(boards.setdefault(m.group(1), _new_board()), m.group(4))
+        if poke:
+            poke["energy"] += 1
+        return
+
+    # --- Energy / card discarded from a specific Pokemon ---
+    m = re.match(fr"^\(({_CODE})\) (.+?) was discarded from (.+?)'s \(({_CODE})\) (.+?)$", text)
+    if m and "Energy" in m.group(2):
+        poke, _ = _board_find(boards.setdefault(m.group(3), _new_board()), m.group(4))
+        if poke and poke["energy"] > 0:
+            poke["energy"] -= 1
+        return
+
+    # --- Damage from an attack ("... on Y's (code) Target for N damage") ---
+    m = re.search(fr"'s \({_CODE}\) .+? used .+? on (.+?)'s \(({_CODE})\) (.+?) for (\d+) damage", text)
+    if m:
+        owner, code, dmg = m.group(1), m.group(2), int(m.group(4))
+        poke, _ = _board_find(boards.setdefault(owner, _new_board()), code)
+        if poke:
+            poke["damage"] += dmg
+            ctx['last_dmg'] = (owner, code, dmg)
+        return
+
+    # --- Weakness bonus ("... took N more damage because of ... Weakness") ---
+    m = re.search(fr"'s \(({_CODE})\) .+? took (\d+) more damage because of", text)
+    if m and ctx.get('last_dmg'):
+        owner = ctx['last_dmg'][0]
+        poke, _ = _board_find(boards.get(owner, _new_board()), m.group(1))
+        if poke:
+            poke["damage"] += int(m.group(2))
+        return
+
+    # --- Damage prevented (e.g. Battle Cage) — undo the damage we just applied ---
+    m = re.match(fr"^Damage to \(({_CODE})\) .+? was prevented", text)
+    if m and ctx.get('last_dmg'):
+        owner, code, amount = ctx['last_dmg']
+        if code == m.group(1):
+            poke, _ = _board_find(boards.get(owner, _new_board()), code)
+            if poke:
+                poke["damage"] = max(0, poke["damage"] - amount)
+        ctx['last_dmg'] = None
+        return
+
+    # --- Damage counters placed by an effect (find the Pokemon by code anywhere) ---
+    m = re.match(fr"^(.+?) put (\d+) damage counters on .+?'s \(({_CODE})\) (.+?)$", text)
+    if m:
+        _, poke, _ = _find_anywhere(boards, m.group(3))
+        if poke:
+            poke["damage"] += int(m.group(2)) * 10
+        return
+
+    # --- A Pokemon shuffled back into the deck (Run Away Draw / Teleporter). Only
+    #     remove the Pokemon that JUST used an ability — that's the self-shuffle.
+    #     Discard-recovery (Sacred Ash) also shuffles into the deck but pulls from the
+    #     discard, so it must not touch the board; its cards weren't 'used'. ---
+    m = re.match(r"^(.+?) shuffled \d+ cards? into their deck", text)
+    if m and ctx.get('last_used'):
+        b = boards.setdefault(m.group(1), _new_board())
+        codes = {c for c, _ in ev.get("card_tokens", [])}
+        if ctx['last_used'] in codes:
+            poke, loc = _board_find(b, ctx['last_used'])
+            if loc == "active":
+                b["active"] = None
+            elif loc == "bench":
+                b["bench"].remove(poke)
+            ctx['last_used'] = None
+        return
+
+    # --- Knock Out: remove the Pokemon (and everything on it) ---
+    m = re.match(fr"^(.+?)'s \(({_CODE})\) (.+?) was Knocked Out", text)
+    if m:
+        b = boards.setdefault(m.group(1), _new_board())
+        poke, loc = _board_find(b, m.group(2))
+        if loc == "active":
+            b["active"] = None
+        elif loc == "bench":
+            b["bench"].remove(poke)
+        return
+
+    # --- Authoritative active-setter (handles retreat / gust / switch / KO-replace) ---
+    m = re.match(fr"^(.+?)'s \(({_CODE})\) (.+?) is now in the Active Spot\.$", text)
+    if m:
+        _set_active(boards.setdefault(m.group(1), _new_board()), m.group(2), m.group(3))
+        return
+
+    # --- Prizes remaining ---
+    m = re.match(r"^(.+?) took (a|\d+) Prize card", text)
+    if m:
+        n = 1 if m.group(2) == "a" else int(m.group(2))
+        b = boards.setdefault(m.group(1), _new_board())
+        b["prizes"] = max(0, b["prizes"] - n)
+        return
+
+
+def parse_board_states(log_text):
+    """Reconstruct the board after each turn. Returns a list of snapshots:
+        {"number", "player", "boards": {player_name: board_copy, ...}}
+    where board_copy = {"active": poke|None, "bench": [poke], "prizes": int}
+    and poke = {"code", "name", "energy", "damage"}.
+    """
+    players = detect_players(log_text)
+    if len(players) < 2:
+        return []
+    boards = {p: _new_board() for p in players}
+    ctx = {'last_dmg': None, 'last_used': None}
+
+    snapshots = []
+    cur = None
+    turn_no = 1
+    for ev in parse_events(log_text):
+        m = re.match(r"^(.+?)'s Turn$", ev['text'])
+        if m:
+            if cur:
+                snapshots.append({"number": cur["number"], "player": cur["player"],
+                                  "boards": {p: _copy_board(boards[p]) for p in players}})
+            cur = {"number": turn_no, "player": m.group(1).strip()}
+            turn_no += 1
+            continue
+        _apply_board_event(ev, boards, ctx)
+        # Enforce the real 5-card bench cap. This is a legal invariant (you can never
+        # have >5 benched) and it also bounds instance-tracking drift on decks that
+        # cycle many same-named Basics (e.g. a 4-Dunsparce Run Away Draw engine),
+        # where duplicate set-codes make exact composition best-effort.
+        for b in boards.values():
+            if len(b["bench"]) > 5:
+                del b["bench"][:len(b["bench"]) - 5]
+
+    if cur:
+        snapshots.append({"number": cur["number"], "player": cur["player"],
+                          "boards": {p: _copy_board(boards[p]) for p in players}})
+    return snapshots

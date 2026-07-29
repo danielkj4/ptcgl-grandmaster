@@ -214,8 +214,40 @@ budew_turns = [tn for tn, cards in carry_turns if "Budew" in cards]
 check_true("Budew flagged as active on the player's next turn(s)",
            len(budew_turns) >= 2, f"flagged on player turns {budew_turns}")
 
+# ==========================================================================
+# Board-state reconstruction (Phase 1 of the visual replay). Positions / prizes
+# are asserted strictly; damage is best-effort and not asserted exactly.
+# ==========================================================================
+from ptcg_parser import parse_board_states  # noqa: E402
+
+print("\n=== board-state reconstruction (all 3 logs) ===")
+for label, log in [("Tigrão95 log", LOG), ("gladys2meetu log", LOG2), ("item-lock log", LOG3)]:
+    snaps = parse_board_states(log)
+    check_true(f"{label}: snapshots produced", len(snaps) > 0, f"{len(snaps)} turns")
+    # The Pokemon TCG bench maxes at 5 — a reconstruction over that means phantom
+    # Pokemon weren't removed (the bug we just fixed).
+    worst = max((len(b["bench"]) for s in snaps for b in s["boards"].values()), default=0)
+    check_true(f"{label}: bench never exceeds 5", worst <= 5, f"worst bench = {worst}")
+    # Prizes remaining on the final board must match the prizes actually taken.
+    players = detect_players(log)
+    final = snaps[-1]["boards"]
+    for p in players:
+        expected = 6 - count_prizes(log, p)
+        check(f"{label}: {p} prizes-remaining matches log", final[p]["prizes"], expected)
+
+print("\n--- item-lock game: specific board facts ---")
+snaps3 = parse_board_states(LOG3)
+opp_active_names = {s["boards"]["Enga265"]["active"]["name"]
+                    for s in snaps3 if s["boards"]["Enga265"]["active"]}
+check_true("opponent's Dragapult ex appears as an active attacker",
+           "Dragapult ex" in opp_active_names, str(sorted(opp_active_names)))
+my_names = {p["name"] for s in snaps3 for p in
+            ([s["boards"]["danielkj4"]["active"]] + s["boards"]["danielkj4"]["bench"]) if p}
+check_true("player's evolution line reconstructed (Alakazam on board)",
+           "Alakazam" in my_names, "")
+
 print()
 if _failures:
     print(f"❌ {len(_failures)} FAILING: {_failures}")
     sys.exit(1)
-print("✅ All parser tests passed (3 real logs).")
+print("✅ All parser tests passed (3 real logs, incl. board reconstruction).")
