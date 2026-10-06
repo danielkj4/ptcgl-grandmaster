@@ -1243,7 +1243,7 @@ def render_replay(a):
     # Turn navigation via Prev/Next buttons (state persists across reruns).
     n = len(board_states)
     if "replay_idx" not in st.session_state or not (0 <= st.session_state.replay_idx < n):
-        st.session_state.replay_idx = n - 1
+        st.session_state.replay_idx = 0   # start at the first turn
     idx = st.session_state.replay_idx
 
     nav_prev, nav_lbl, nav_next = st.columns([1, 3, 1])
