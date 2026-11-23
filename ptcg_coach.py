@@ -1429,7 +1429,10 @@ if import_clicked:
 
 log_input = st.text_area(
     "Battle Log:", height=150, key="log_input",
-    placeholder="Click 'Import from PTCG Live' above after copying the log in-game — or paste it here manually.")
+    placeholder=(
+        "In PTCG Live, click 'Copy Battle Log' after the game, then paste it here."
+        if HOSTED else
+        "Click 'Import from PTCG Live' above after copying the log in-game — or paste it here manually."))
 
 if log_input:
     players = sorted(list(set(re.findall(r"(.+)'s Turn", log_input))))
