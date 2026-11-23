@@ -7,6 +7,9 @@ cross-game tracking that surfaces the mistakes you keep repeating.
 Built with [Streamlit](https://streamlit.io/) and the
 [Anthropic API](https://docs.anthropic.com/) (Claude).
 
+**▶️ Live demo:** _coming soon_ — paste a PTCG Live battle log and try it in your
+browser, no setup or API key required. (A few free analyses per session.)
+
 ## Features
 
 **🔮 Match Analyzer** — parses a battle log into per-turn game state (hand, discard
@@ -47,6 +50,31 @@ ANTHROPIC_API_KEY = "sk-ant-..."
 ```
 
 > `.streamlit/secrets.toml` is gitignored — never commit your API key.
+
+## Hosted deployment
+
+The app runs in one of two modes automatically, based on whether an
+`ANTHROPIC_API_KEY` is present in Streamlit secrets:
+
+- **Local mode** (no secret key): you enter your own key in the sidebar, history
+  is saved to local JSON files, and the clipboard "Import from PTCG Live" button
+  is available.
+- **Hosted mode** (key set in secrets): the owner's key is used for all visitors,
+  so no key box is shown; history is kept per browser session instead of on disk;
+  the server-clipboard import is hidden (visitors paste their log); and each
+  session is capped at `MAX_ANALYSES_PER_SESSION` analyses to control cost.
+
+To deploy on [Streamlit Community Cloud](https://share.streamlit.io), point it at
+this repo with `ptcg_coach.py` as the main file and set these secrets:
+
+```toml
+ANTHROPIC_API_KEY = "sk-ant-..."
+COACH_MODEL = "claude-sonnet-4-6"      # optional; defaults to claude-opus-4-8
+MAX_ANALYSES_PER_SESSION = "5"         # optional; defaults to 5
+```
+
+Set a monthly spend limit in the [Anthropic Console](https://console.anthropic.com/)
+as a hard cost backstop.
 
 ## Tests
 
