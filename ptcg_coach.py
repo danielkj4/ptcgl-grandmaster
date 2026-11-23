@@ -21,6 +21,29 @@ from ptcg_parser import (
     extract_card_names, parse_board_states,
 )
 
+# --- 0. DEPLOY CONFIG ------------------------------------------------------
+# "Hosted" mode = the owner put an ANTHROPIC_API_KEY in Streamlit secrets, so
+# visitors use the app for free without their own key. It flips several behaviors:
+#   * the API-key input is hidden (the owner's key is used)
+#   * a per-session analysis cap limits cost/abuse (the hard backstop is the
+#     spend limit set on the Anthropic console)
+#   * the model can be a cheaper one (set COACH_MODEL in secrets)
+#   * the clipboard import is hidden (it reads the SERVER's clipboard, not yours)
+#   * game history is per-session, not a shared file (privacy + ephemeral disk)
+def _secret(key, default=""):
+    try:
+        return st.secrets.get(key, default)
+    except Exception:
+        return default
+
+OWNER_KEY = _secret("ANTHROPIC_API_KEY", "")
+HOSTED = bool(OWNER_KEY)
+COACH_MODEL = _secret("COACH_MODEL", "claude-opus-4-8")
+try:
+    MAX_ANALYSES_PER_SESSION = int(_secret("MAX_ANALYSES_PER_SESSION", "5"))
+except Exception:
+    MAX_ANALYSES_PER_SESSION = 5
+
 # --- 1. LOCAL STORAGE SETUP (Deck Manager) ---
 DECKS_FILE = "saved_decks.json"
 
@@ -53,6 +76,11 @@ WEAKNESS_CATEGORIES = [
 ]
 
 def load_history():
+    # Hosted: per-visitor history in session state (avoids mixing users on the
+    # shared server file, which Streamlit Cloud also wipes on redeploy). Local:
+    # a JSON file that persists across runs on your own machine.
+    if HOSTED:
+        return st.session_state.get("history", [])
     if os.path.exists(HISTORY_FILE):
         try:
             with open(HISTORY_FILE, "r") as f:
@@ -62,6 +90,9 @@ def load_history():
     return []
 
 def save_history(history):
+    if HOSTED:
+        st.session_state["history"] = history
+        return
     with open(HISTORY_FILE, "w") as f:
         json.dump(history, f, indent=4)
 
@@ -403,7 +434,7 @@ def get_legal_regulation_marks(api_key):
         response = None
         for _ in range(6):
             response = client.messages.create(
-                model="claude-opus-4-8", max_tokens=1024, tools=tools, messages=messages,
+                model=COACH_MODEL, max_tokens=1024, tools=tools, messages=messages,
             )
             if response.stop_reason == "pause_turn":
                 messages.append({"role": "assistant", "content": response.content})
@@ -526,7 +557,7 @@ MATCH DATA & HAND STATES:
 {match_context[:6000]}
 """
         response = client.messages.create(
-            model="claude-opus-4-8",
+            model=COACH_MODEL,
             max_tokens=6000,
             system=system_prompt,
             messages=[{"role": "user", "content": prompt}]
@@ -600,7 +631,7 @@ MATCH DATA & HAND STATES:
 
         messages = [{"role": m["role"], "content": m["content"]} for m in st.session_state.coach_messages]
         response = client.messages.create(
-            model="claude-opus-4-8",
+            model=COACH_MODEL,
             max_tokens=2048,
             system=[{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}],
             messages=messages,
@@ -737,7 +768,7 @@ Search for the current Standard format and meta, then recommend the three-deck p
         response = None
         for _ in range(6):
             response = client.messages.create(
-                model="claude-opus-4-8",
+                model=COACH_MODEL,
                 max_tokens=4096,
                 system=system_prompt,
                 tools=tools,
@@ -946,7 +977,7 @@ MATCHUP RECORDS:
 
 Write a short, prioritized improvement plan (3-4 bullet points maximum). Lead with their single biggest recurring weakness and their worst matchup. Be specific and actionable about HABITS to change, not specific card lists. Do not invent card names."""
         response = client.messages.create(
-            model="claude-opus-4-8",
+            model=COACH_MODEL,
             max_tokens=1024,
             messages=[{"role": "user", "content": prompt}],
         )
@@ -1122,7 +1153,7 @@ VERDICT: PARTIAL
 VERDICT: OFF
 Then 2-4 sentences: what they got right, what they missed versus the strong line, and reinforce the principle. Be encouraging, specific, and concrete. Only reference cards in their hand or the situation — do not invent cards."""
         resp = client.messages.create(
-            model="claude-opus-4-8", max_tokens=700,
+            model=COACH_MODEL, max_tokens=700,
             messages=[{"role": "user", "content": prompt}])
         text = resp.content[0].text
         m = re.search(r"VERDICT:\s*(STRONG|PARTIAL|OFF)", text, re.IGNORECASE)
@@ -1296,9 +1327,16 @@ saved_decks = load_saved_decks()
 
 with st.sidebar:
     st.header("⚙️ Configuration")
-    try: saved_key = st.secrets.get("ANTHROPIC_API_KEY", "")
-    except: saved_key = ""
-    api_key = st.text_input("Anthropic API Key:", type="password", value=saved_key)
+    if HOSTED:
+        # Hosted deployment: the owner supplies the key via Streamlit secrets,
+        # so visitors never see or enter one.
+        api_key = OWNER_KEY
+        _left = MAX_ANALYSES_PER_SESSION - st.session_state.get("analyses_used", 0)
+        st.caption(f"✨ Free to use — {max(_left, 0)} of {MAX_ANALYSES_PER_SESSION} analyses left this session.")
+    else:
+        try: saved_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+        except: saved_key = ""
+        api_key = st.text_input("Anthropic API Key:", type="password", value=saved_key)
 
     st.divider()
     app_mode = st.radio("Choose a Tool:", ["🔮 Match Analyzer", "🧭 Deck Finder", "📈 My Progress"])
@@ -1357,13 +1395,19 @@ if app_mode == "📈 My Progress":
 # ===== MATCH ANALYZER MODE (default) =====
 # One-click import: PTCG Live's "Copy Battle Log" puts the log on the clipboard,
 # and Streamlit runs locally, so we can read it straight out.
-imp_col, opt_col = st.columns([1, 2])
-with imp_col:
-    import_clicked = st.button("📋 Import from PTCG Live", type="primary")
-with opt_col:
-    auto_analyze = st.checkbox(
-        "Analyze immediately on import", value=True,
-        help="Runs the analysis as soon as a log is imported, using the last player you analyzed.")
+if HOSTED:
+    # Hosted: the clipboard button would read the SERVER's clipboard, not the
+    # visitor's, so it's useless remotely. Visitors paste their log manually.
+    import_clicked = False
+    auto_analyze = False
+else:
+    imp_col, opt_col = st.columns([1, 2])
+    with imp_col:
+        import_clicked = st.button("📋 Import from PTCG Live", type="primary")
+    with opt_col:
+        auto_analyze = st.checkbox(
+            "Analyze immediately on import", value=True,
+            help="Runs the analysis as soon as a log is imported, using the last player you analyzed.")
 
 if import_clicked:
     clip = read_clipboard()
@@ -1393,6 +1437,14 @@ if log_input:
         auto_run = st.session_state.pop("auto_run", False) and remembered in players
 
         if st.button("🚀 Execute Analysis Engine", type="primary") or auto_run:
+            # On the hosted app the owner pays for every analysis, so cap how many
+            # a single visitor session can run. (No limit when running locally.)
+            if HOSTED and st.session_state.get("analyses_used", 0) >= MAX_ANALYSES_PER_SESSION:
+                st.error(
+                    f"You've used all {MAX_ANALYSES_PER_SESSION} free analyses for this session. "
+                    "Reload the page later to reset, or run the app locally with your own API key.")
+                st.stop()
+
             save_last_player(target_user)
 
             # All log parsing lives in ptcg_parser (unit-tested against real logs).
@@ -1417,6 +1469,11 @@ if log_input:
                 # Cross-game tracking inputs
                 detected_matchup = detect_opponent_deck(log_input, target_user)
                 game_result = detect_result(log_input, target_user)
+
+            # Count a hosted analysis against the session quota only when the AI
+            # actually produced a result (a connection error shouldn't burn it).
+            if HOSTED and summary and not str(summary).startswith(("❌", "⚠️")):
+                st.session_state["analyses_used"] = st.session_state.get("analyses_used", 0) + 1
 
             # Save this game to cross-game history (dedup by log+player), unless the AI errored.
             saved_to_history = False
