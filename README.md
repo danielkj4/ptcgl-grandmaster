@@ -1,4 +1,4 @@
-# 🔮 PTCGL Grandmaster Engine
+# 🔮 [PTCGL Grandmaster Engine](https://tcg-grandmaster.streamlit.app/)
 
 An AI coaching tool for the Pokémon Trading Card Game. Paste a PTCG Live battle
 log and get a turn-by-turn review of your play, grounded in real card data — plus
@@ -7,8 +7,9 @@ cross-game tracking that surfaces the mistakes you keep repeating.
 Built with [Streamlit](https://streamlit.io/) and the
 [Anthropic API](https://docs.anthropic.com/) (Claude).
 
-**▶️ Live demo:** _coming soon_ — paste a PTCG Live battle log and try it in your
-browser, no setup or API key required. (A few free analyses per session.)
+**▶️ [Live demo](https://tcg-grandmaster.streamlit.app/)** — paste a PTCG Live
+battle log and try it in your browser, no setup or API key required. (A few free
+analyses per session.)
 
 ## Features
 
