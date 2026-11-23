@@ -516,9 +516,14 @@ CRITICAL RULES FOR ADVICE:
 3. A card's effect is defined ONLY by the CARD ORACLE TEXT provided. NEVER guess or rely on memory for what a card does. If a card is not in the oracle text and its effect isn't shown in the log, do not speculate about its effect.
 4. Each player turn lists Hand at Start, Discard Pile, and Actions Taken. A card in the DISCARD PILE is NOT playable directly — it can only come back via a recovery card (e.g. energy/Pokemon recovery). Never tell the player to play or use a card that is in their discard pile unless they first recover it. Conversely, do not claim a card is "gone" if recovery cards are available to them.
 5. OPPONENT EFFECTS THAT CARRY INTO THE PLAYER'S TURN: the CARD ORACLE TEXT covers the OPPONENT'S cards too. Some opponent attacks/abilities impose a restriction that lasts "during your opponent's next turn" — an Item lock, an Ability lock, "can't retreat", etc. When the match data shows a "⚠️ CARRY-OVER CHECK" note, read the oracle text of the named opponent cards: if one restricts this player, that restriction is ACTIVE this turn. NEVER recommend a play it forbids — e.g. do NOT tell the player to play an Item card on a turn where the opponent's previous attack locked Items. (Trainer cards are typed Item / Supporter / Stadium / Tool in their oracle text; an Item lock only blocks Items.)
-6. If you recommend a card, put its exact name in BRACKETS at the start of the line.
-7. If their turn was optimal, or if they had no better options in hand, reply with: "[None] Optimal play based on your hand."
-8. THE LESSON IS THE MOST IMPORTANT PART OF YOUR OUTPUT. Pick the ONE decision that most changed how this game went and teach it properly — depth on a single decision beats shallow notes on every turn. The PRINCIPLE must be transferable: state it so it applies in a future game with completely different cards. Do not put card names in the PRINCIPLE. If they played cleanly, still pick the most instructive moment and teach why that line was correct.
+6. PER-TURN ACTION LIMITS — these are FIXED game rules, always in force. NEVER recommend a line that breaks them, and never praise a turn as if a second one of these were possible:
+   - At most ONE Supporter per turn. This applies across DIFFERENT Supporters, not just the same card: if the player already played ANY Supporter this turn, they CANNOT play another. (Supporters are the Trainer cards typed "Supporter" in the oracle text — e.g. Crispin, Brock's Scouting, Professor's Research, Iono, Arven, Boss's Orders, Team Rocket's Petrel. Pokégear 3.0 is an ITEM, not a Supporter.) So do NOT say "should have played [Supporter X] before [Supporter Y]" when both were played the same turn — only one was ever legal.
+   - At most ONE manual Energy attachment from hand per turn, unless a card's oracle text explicitly grants an extra attachment.
+   - At most ONE Stadium played per turn; you may retreat only ONCE per turn unless a card says otherwise.
+   - You cannot evolve a Pokémon the same turn it was played or placed, and cannot evolve on your very first turn of the game.
+7. If you recommend a card, put its exact name in BRACKETS at the start of the line.
+8. If their turn was optimal, or if they had no better options in hand, reply with: "[None] Optimal play based on your hand."
+9. THE LESSON IS THE MOST IMPORTANT PART OF YOUR OUTPUT. Pick the ONE decision that most changed how this game went and teach it properly — depth on a single decision beats shallow notes on every turn. The PRINCIPLE must be transferable: state it so it applies in a future game with completely different cards. Do not put card names in the PRINCIPLE. If they played cleanly, still pick the most instructive moment and teach why that line was correct.
 You are a strict, professional Pokemon TCG coach focusing on the current Standard meta. You NEVER hallucinate cards and ALWAYS read the player's actions before giving advice. Your job is to make the player BETTER, not to narrate what happened."""
 
         prompt = f"""You are reviewing a match for '{target_user}'.
@@ -617,6 +622,7 @@ You have the full match data, the player's decklist, and oracle text for every c
 RULES:
 - A card's effect is defined ONLY by the CARD ORACLE TEXT below. NEVER guess or rely on memory for what a card does.
 - A card listed in a turn's Discard Pile is NOT directly playable; it can only return via a recovery card.
+- FIXED PER-TURN LIMITS, always in force: at most ONE Supporter per turn (across DIFFERENT Supporters, not just the same card — Pokégear 3.0 is an Item, not a Supporter); at most ONE manual Energy attachment from hand per turn unless a card grants more; at most ONE Stadium and ONE retreat per turn; a Pokémon cannot evolve the turn it was played, nor on your first turn. Never suggest a line that breaks these.
 - Reference specific turns and cards from this match. Be concise and concrete.
 - '{ctx['target_user']}' is the player you are coaching.
 
