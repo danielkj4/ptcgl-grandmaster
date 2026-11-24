@@ -29,6 +29,15 @@ then add it to both system prompts in `ptcg_coach.py`.
 - **No same-turn evolution** — a Pokémon can't evolve the turn it was played, and
   nothing can evolve on your first turn of the game.
 
+### Card subtypes & conditional effects
+- The oracle text for every card now leads with its **supertype AND subtypes**
+  (e.g. `Pokémon - Stage 2, ex`, `Energy - Special`, `Trainer - Supporter`), so
+  the coach can see a Pokémon's **stage** and a Trainer's **type**.
+- A **Stage 1 / Stage 2 Pokémon is an "Evolution Pokémon"; a Basic is not.** The
+  coach must apply effects that hinge on this — e.g. **Ignition Energy** provides
+  3 Colorless only on an Evolution, and just 1 on a Basic. (Added after the coach
+  misread Ignition Energy because the card reference omitted the Pokémon's stage.)
+
 ### Reasoning constraints (not game rules, but pinned behavior)
 - A card already played this turn can't be played again.
 - A card in the discard pile isn't directly playable — only via a recovery card.

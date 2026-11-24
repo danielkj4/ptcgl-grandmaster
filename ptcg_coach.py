@@ -401,7 +401,15 @@ def fetch_card_text(card_name: str) -> str:
         if not cards:
             return ""
         c = cards[0]
-        parts = [f"{c.get('supertype', '')}"]
+        # Lead with supertype AND subtypes. The coach needs a Pokemon's STAGE
+        # (Basic / Stage 1 / Stage 2) to apply effects that hinge on Basic vs
+        # Evolution — e.g. Ignition Energy provides 3 energy only on an Evolution
+        # — and the Trainer TYPE (Supporter / Item / Stadium) for the per-turn
+        # Supporter limit. Without subtypes the model was blind to both.
+        supertype = c.get("supertype", "")
+        subtypes = c.get("subtypes") or []
+        head = supertype + (f" - {', '.join(subtypes)}" if subtypes else "")
+        parts = [head]
         for ab in c.get("abilities", []):
             parts.append(f"Ability [{ab.get('name', '')}]: {ab.get('text', '')}")
         for at in c.get("attacks", []):
@@ -528,7 +536,7 @@ def get_advanced_ai_review(turns, target_user, api_key, stats, deck_dict, legal_
 CRITICAL RULES FOR ADVICE:
 1. READ THE ACTIONS TAKEN CAREFULLY. If the log shows the player already played a specific card this turn, DO NOT tell them to play it again!
 2. DO NOT suggest a card if it is not in the Player's Decklist or Hand.
-3. A card's effect is defined ONLY by the CARD ORACLE TEXT provided. NEVER guess or rely on memory for what a card does. If a card is not in the oracle text and its effect isn't shown in the log, do not speculate about its effect.
+3. A card's effect is defined ONLY by the CARD ORACLE TEXT provided. NEVER guess or rely on memory for what a card does. If a card is not in the oracle text and its effect isn't shown in the log, do not speculate about its effect. Each oracle entry begins with its supertype and subtypes, e.g. "Pokémon - Stage 2, ex", "Energy - Special", "Trainer - Supporter". A Stage 1 or Stage 2 Pokémon IS an "Evolution Pokémon"; a Basic is NOT. You MUST honour every attachment restriction and conditional written in a card's oracle text, using the target's stage — e.g. a special Energy that "provides 3 Colorless if attached to an Evolution Pokémon" provides only its base amount on a Basic. Do not claim a special Energy gives its bonus on a Basic, and do not treat it as unplayable on a Basic unless the text says so.
 4. Each player turn lists Hand at Start, Discard Pile, and Actions Taken. A card in the DISCARD PILE is NOT playable directly — it can only come back via a recovery card (e.g. energy/Pokemon recovery). Never tell the player to play or use a card that is in their discard pile unless they first recover it. Conversely, do not claim a card is "gone" if recovery cards are available to them.
 5. OPPONENT EFFECTS THAT CARRY INTO THE PLAYER'S TURN: the CARD ORACLE TEXT covers the OPPONENT'S cards too. Some opponent attacks/abilities impose a restriction that lasts "during your opponent's next turn" — an Item lock, an Ability lock, "can't retreat", etc. When the match data shows a "⚠️ CARRY-OVER CHECK" note, read the oracle text of the named opponent cards: if one restricts this player, that restriction is ACTIVE this turn. NEVER recommend a play it forbids — e.g. do NOT tell the player to play an Item card on a turn where the opponent's previous attack locked Items. (Trainer cards are typed Item / Supporter / Stadium / Tool in their oracle text; an Item lock only blocks Items.)
 6. PER-TURN ACTION LIMITS — these are FIXED game rules, always in force. NEVER recommend a line that breaks them, and never praise a turn as if a second one of these were possible:
