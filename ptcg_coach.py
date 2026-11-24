@@ -263,14 +263,21 @@ def _pokemontcg_cards(params):
 
 def _code_to_set_number(code):
     """PTCGL set-code -> (set_id, number). '(sv5_129)' -> ('sv5', '129').
-    Format is <set>_<number>[_suffix]; the set part may contain hyphens."""
+    Format is <set>_<number>[_suffix].
+
+    PTCGL writes the ".5" sets with a hyphen ('me2-5', 'sv3-5'), but
+    pokemontcg.io names them with 'pt5' ('me2pt5', 'sv3pt5'). Translate so the
+    exact-printing lookup hits directly instead of falling through to a guess."""
     if not code:
         return None, None
     parts = code.split("_")
     if len(parts) < 2:
         return None, None
     num = re.match(r"\d+", parts[1])
-    return (parts[0], num.group()) if num else (None, None)
+    if not num:
+        return None, None
+    set_id = re.sub(r"-(\d+)$", lambda m: "pt" + m.group(1), parts[0])
+    return set_id, num.group()
 
 @st.cache_data(ttl=3600)
 def get_card_meta(card_name, code=None):
@@ -280,17 +287,25 @@ def get_card_meta(card_name, code=None):
     name search when the code's set isn't in the database."""
     if not card_name or card_name.lower() == "none":
         return None, None
-    # 1) exact card by set + number
+    clean_name = re.sub(r'[^a-zA-Z0-9\s\'-]', '', card_name).strip()
     setid, num = _code_to_set_number(code)
+    # 1) exact card by set + number (the precise printing that was played)
     if setid and num:
         data = _pokemontcg_cards({"q": f"set.id:{setid} number:{num}", "pageSize": 1})
         if data:
             return data[0].get("images", {}).get("small"), data[0].get("regulationMark")
-    # 2) fall back to the newest printing by name
-    clean_name = re.sub(r'[^a-zA-Z0-9\s\'-]', '', card_name).strip()
-    data = _pokemontcg_cards({"q": f'name:"{clean_name}"', "orderBy": "-set.releaseDate", "pageSize": 1})
-    if data:
-        return data[0].get("images", {}).get("small"), data[0].get("regulationMark")
+    # 2) same collector number AND name, across sets. Self-corrects PTCGL set
+    #    codes whose set id doesn't match the DB's (e.g. a code the pt5 rule
+    #    misses): the number pins the exact printing far better than name alone.
+    if num and clean_name:
+        data = _pokemontcg_cards({"q": f'name:"{clean_name}" number:{num}', "pageSize": 1})
+        if data:
+            return data[0].get("images", {}).get("small"), data[0].get("regulationMark")
+    # 3) last resort: newest printing by name (right card, maybe different art)
+    if clean_name:
+        data = _pokemontcg_cards({"q": f'name:"{clean_name}"', "orderBy": "-set.releaseDate", "pageSize": 1})
+        if data:
+            return data[0].get("images", {}).get("small"), data[0].get("regulationMark")
     return None, None
 
 def get_card_image(card_name, code=None):
