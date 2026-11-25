@@ -1348,6 +1348,72 @@ def render_replay(a):
             st.markdown(f'<div class="ai-box">🧠 <b>Coach on Turn {tn}:</b> {ad["text"]}</div>',
                         unsafe_allow_html=True)
 
+# --- 6e. HOW TO USE (tutorial) ---
+def render_how_to_use():
+    st.header("📖 How to Use This Tool")
+    st.markdown(
+        "The **PTCGL Grandmaster Engine** reviews your Pokémon TCG Live matches "
+        "turn by turn, grounded in real card data, and tracks the mistakes you "
+        "keep repeating so you actually improve. Here's how to get the most out of it.")
+
+    st.divider()
+    st.subheader("1️⃣ Get your battle log from PTCG Live")
+    st.markdown(
+        "- Finish a game in **Pokémon TCG Live**.\n"
+        "- On the results screen, click **Copy Battle Log** (it copies the full "
+        "log to your clipboard).")
+    if HOSTED:
+        st.markdown(
+            "- Come back here, go to **🔮 Match Analyzer**, and **paste** the log "
+            "into the *Battle Log* box.")
+    else:
+        st.markdown(
+            "- Come back here and either click **📋 Import from PTCG Live** (reads "
+            "your clipboard automatically) or paste the log into the *Battle Log* box.")
+
+    st.divider()
+    st.subheader("2️⃣ Run a match analysis")
+    st.markdown(
+        "In **🔮 Match Analyzer**:\n"
+        "1. *(Optional but recommended)* In the sidebar **Deck Manager**, paste your "
+        "decklist and **Save Deck**. Giving the coach your full list makes its advice "
+        "far sharper — it knows what you *could* have drawn, not just what you played.\n"
+        "2. Paste your battle log into the **Battle Log** box.\n"
+        "3. Pick **which player is you** in the *Select Player to Analyze* dropdown.\n"
+        "4. Click **🚀 Execute Analysis Engine**.")
+    st.info("💡 The coach reads real card text (abilities, attacks, energy rules, and "
+            "each Pokémon's stage), so it won't invent cards or effects. Very new cards "
+            "that aren't in the card database yet may show no image — that's the database "
+            "lagging, not a mistake in the analysis.")
+
+    st.divider()
+    st.subheader("3️⃣ Read your results")
+    st.markdown(
+        "- **Verdict & Summary** — the turning point, your biggest blunder, and your best move.\n"
+        "- **Turn-by-Turn** — expand any turn to see your hand, draw odds, and the coach's "
+        "*better move* with the card pictured.\n"
+        "- **The Lesson** — the single most important decision of the game, taught as a "
+        "transferable principle you can use in future games with different cards.\n"
+        "- **Drill** — try the key decision yourself and get graded.\n"
+        "- **Game Replay** — scrub through the reconstructed board, turn by turn.\n"
+        "- **Ask the Coach** — follow-up questions about any play, matchup, or line.")
+
+    st.divider()
+    st.subheader("🧭 Deck Finder & 📈 My Progress")
+    st.markdown(
+        "- **🧭 Deck Finder** — a short play-style quiz that matches you to an archetype "
+        "and recommends a Beginner → Intermediate → Advanced deck path.\n"
+        "- **📈 My Progress** — every game you analyze is saved automatically; this view "
+        "aggregates your recurring weaknesses, matchup records, and a prioritized plan. "
+        "Drill into a weakness to see the exact turns across games where it happened.")
+
+    if HOSTED:
+        st.divider()
+        st.caption(
+            f"This is the free hosted version — up to {MAX_ANALYSES_PER_SESSION} analyses "
+            "per session (reload the page to reset). Your saved decks and game history live "
+            "in your browser session only and aren't shared with anyone else.")
+
 # --- 7. MAIN APP LOOP ---
 setup_ui()
 st.title("🔮 PTCGL Grandmaster Engine")
@@ -1368,7 +1434,7 @@ with st.sidebar:
         api_key = st.text_input("Anthropic API Key:", type="password", value=saved_key)
 
     st.divider()
-    app_mode = st.radio("Choose a Tool:", ["🔮 Match Analyzer", "🧭 Deck Finder", "📈 My Progress"])
+    app_mode = st.radio("Choose a Tool:", ["🔮 Match Analyzer", "🧭 Deck Finder", "📈 My Progress", "📖 How to Use"])
 
     # Defaults so analyzer variables always exist regardless of mode.
     user_decklist = ""
@@ -1419,6 +1485,11 @@ if app_mode == "🧭 Deck Finder":
 # ===== MY PROGRESS MODE =====
 if app_mode == "📈 My Progress":
     render_progress(api_key)
+    st.stop()
+
+# ===== HOW TO USE MODE =====
+if app_mode == "📖 How to Use":
+    render_how_to_use()
     st.stop()
 
 # ===== MATCH ANALYZER MODE (default) =====
