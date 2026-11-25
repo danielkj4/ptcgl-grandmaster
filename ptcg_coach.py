@@ -11,6 +11,7 @@ import sys
 import subprocess
 import hashlib
 import datetime
+import html
 from collections import Counter
 
 # Pure log-parsing lives in ptcg_parser.py so it can be unit-tested without
@@ -123,6 +124,37 @@ def setup_ui():
         .stButton > button[kind="primary"] { background: linear-gradient(90deg, #4a47a3 0%, #66fcf1 100%) !important; color: #0b0c10 !important; font-weight: bold !important; border: none !important; border-radius: 8px !important; transition: all 0.3s ease !important; padding: 10px 24px !important; }
         .stButton > button[kind="primary"]:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(102, 252, 241, 0.5) !important; }
         div[data-testid="stMetricValue"] { color: #66fcf1 !important; }
+        /* Game-like tab bar */
+        .stTabs [data-baseweb="tab-list"] { gap: 6px; border-bottom: 1px solid rgba(102,252,241,0.15) !important; }
+        .stTabs [data-baseweb="tab"] { background: rgba(255,255,255,0.05); border-radius: 8px 8px 0 0; padding: 6px 16px; }
+        .stTabs [aria-selected="true"] { background: linear-gradient(90deg,#4a47a3,#66fcf1) !important; }
+        .stTabs [aria-selected="true"] * { color: #0b0c10 !important; font-weight: 700 !important; }
+        /* ===== Replay playmat ===== */
+        .ptcg-mat { background: radial-gradient(ellipse at center, #1b2440 0%, #0b0f1a 100%); border: 2px solid rgba(102,252,241,0.25); border-radius: 20px; padding: 14px 16px; box-shadow: inset 0 0 70px rgba(0,0,0,0.65), 0 10px 30px rgba(0,0,0,0.5); }
+        .mat-row { padding: 8px 6px; border-radius: 14px; transition: background .3s, box-shadow .3s; }
+        .mat-row.turn-active { background: rgba(102,252,241,0.07); box-shadow: inset 0 0 0 1px rgba(102,252,241,0.35); }
+        .mat-head { display: flex; align-items: center; gap: 10px; margin: 2px 2px 8px; flex-wrap: wrap; }
+        .mat-head.opp .mat-name { color: #ff9b9b !important; }
+        .mat-head.you .mat-name { color: #8ad7ff !important; }
+        .mat-name { font-weight: 700; font-size: .98rem; }
+        .prize-pips { display: inline-flex; gap: 3px; }
+        .prize-pip { width: 10px; height: 14px; border-radius: 2px; background: linear-gradient(135deg,#f6c945,#d89b2a); box-shadow: 0 0 5px rgba(246,201,69,0.55); }
+        .prize-pip.spent { background: rgba(255,255,255,0.10); box-shadow: none; }
+        .prize-label { font-size: .78rem; opacity: .75; }
+        .active-row { display: flex; justify-content: center; margin: 6px 0; }
+        .bench-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; min-height: 8px; }
+        .pcard { position: relative; width: 70px; }
+        .pcard.active { width: 104px; }
+        .pcard img { width: 100%; border-radius: 6px; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+        .pcard.active img { outline: 2px solid rgba(102,252,241,0.65); box-shadow: 0 0 16px rgba(102,252,241,0.5); }
+        .pcard .ph { width: 100%; aspect-ratio: 5 / 7; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px dashed rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; text-align: center; font-size: .58rem; padding: 4px; color: #cde; }
+        .badge { position: absolute; font-size: .62rem; font-weight: 700; padding: 1px 5px; border-radius: 10px; line-height: 1.35; white-space: nowrap; }
+        .badge.dmg { top: -6px; right: -6px; background: #e4572e; color: #fff !important; box-shadow: 0 0 6px rgba(228,87,46,0.75); }
+        .badge.nrg { bottom: 18px; left: -6px; background: #2a9d8f; color: #fff !important; }
+        .pname { font-size: .6rem; text-align: center; margin-top: 3px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mat-mid { text-align: center; margin: 6px 0; color: #66fcf1 !important; font-weight: 700; letter-spacing: .5px; font-size: .9rem; position: relative; }
+        .mat-mid span { background: #0b0f1a; padding: 0 12px; position: relative; z-index: 1; }
+        .mat-mid:before { content: ''; position: absolute; top: 50%; left: 4%; right: 4%; height: 1px; background: linear-gradient(90deg, transparent, rgba(102,252,241,0.4), transparent); }
         /* Lock the app to its dark look: hide the toolbar/menu that exposes the Light/Dark theme switcher. */
         [data-testid="stToolbar"] { display: none !important; }
         #MainMenu { visibility: hidden !important; }
@@ -1238,36 +1270,46 @@ def render_drill(lesson, turns, api_key):
             st.rerun()
 
 # --- 6f. VISUAL REPLAY (scrub through the game board turn by turn) ---
-def _poke_caption(poke):
-    bits = []
-    if poke.get("energy"):
-        bits.append(f"⚡{poke['energy']}")
-    if poke.get("damage"):
-        bits.append(f"💥{poke['damage']}")
-    return "  ".join(bits)
-
-def _render_poke(poke, width, show_name):
+def _poke_card_html(poke, is_active=False):
+    """One Pokemon as a styled card for the replay playmat: art, a red damage
+    badge, a green energy badge, and its name. Falls back to a labeled
+    placeholder when the card has no image in the database."""
     if not poke:
-        st.caption("— empty —")
-        return
+        return '<div class="pcard"><div class="ph">—</div></div>'
+    name = html.escape(poke.get("name", ""))
     img = get_card_image(poke["name"], poke.get("code"))
-    if img:
-        st.image(img, width=width)
-    cap = (poke["name"] + "  " if show_name else "") + _poke_caption(poke)
-    st.caption(cap.strip() or poke["name"])
+    cls = "pcard active" if is_active else "pcard"
+    inner = f'<img src="{html.escape(img)}" alt="{name}">' if img else f'<div class="ph">{name}</div>'
+    badges = ""
+    if poke.get("damage"):
+        badges += f'<span class="badge dmg">💥{poke["damage"]}</span>'
+    if poke.get("energy"):
+        badges += f'<span class="badge nrg">⚡{poke["energy"]}</span>'
+    return f'<div class="{cls}">{inner}{badges}<div class="pname">{name}</div></div>'
 
-def _render_board(board, title, highlight=False):
-    head = f"{'🟢 ' if highlight else ''}**{title}** · 🏆 {board['prizes']} prize(s) left"
-    st.markdown(head)
-    st.caption("Active")
-    _render_poke(board.get("active"), 120, show_name=True)
-    bench = board.get("bench", [])
-    st.caption(f"Bench ({len(bench)}/5)")
-    if bench:
-        cols = st.columns(5)
-        for i, p in enumerate(bench[:5]):
-            with cols[i]:
-                _render_poke(p, 70, show_name=False)
+def _prize_pips_html(n, total=6):
+    """Remaining prize cards as gold pips (spent ones dimmed)."""
+    n = max(0, min(total, int(n or 0)))
+    pips = "".join('<span class="prize-pip"></span>' for _ in range(n))
+    pips += "".join('<span class="prize-pip spent"></span>' for _ in range(total - n))
+    return f'<span class="prize-pips">{pips}</span><span class="prize-label">{n} prize(s) left</span>'
+
+def _board_side_html(board, name, is_you, is_turn):
+    """One player's half of the playmat. Opponent reads header → bench → active
+    (top-down, facing you); you read active → bench → header (bottom-up)."""
+    side = "you" if is_you else "opp"
+    icon = "🔵" if is_you else "🔴"
+    label = f"{icon} {html.escape(name)}" + (" (You)" if is_you else "")
+    head = (f'<div class="mat-head {side}"><span class="mat-name">{label}</span>'
+            f'{_prize_pips_html(board.get("prizes", 0))}</div>')
+    active = f'<div class="active-row">{_poke_card_html(board.get("active"), is_active=True)}</div>'
+    bench_cards = [_poke_card_html(p) for p in board.get("bench", [])[:5]]
+    bench = ('<div class="bench-row">' +
+             ("".join(bench_cards) if bench_cards else '<span class="prize-label">empty bench</span>') +
+             '</div>')
+    body = (active + bench + head) if is_you else (head + bench + active)
+    turn_cls = " turn-active" if is_turn else ""
+    return f'<div class="mat-row mat-{side}{turn_cls}">{body}</div>'
 
 def _prewarm_board_images(board_states):
     """Fetch every board Pokemon's image in parallel once (by exact set-code), so the
@@ -1329,14 +1371,18 @@ def render_replay(a):
 
     boards = snap["boards"]
     opp = next((p for p in boards if p != target_user), None)
-    you_col, opp_col = st.columns(2)
-    with you_col:
-        _render_board(boards[target_user], f"You ({target_user})",
-                      highlight=(snap["player"] == target_user))
-    with opp_col:
-        if opp:
-            _render_board(boards[opp], f"Opponent ({opp})",
-                          highlight=(snap["player"] == opp))
+
+    # Assemble the whole playmat as one HTML block: opponent across the top,
+    # you along the bottom, with a center line marking whose turn this is.
+    parts = ['<div class="ptcg-mat">']
+    if opp:
+        parts.append(_board_side_html(boards[opp], opp, is_you=False,
+                                      is_turn=(snap["player"] == opp)))
+    parts.append(f'<div class="mat-mid"><span>Turn {tn} · {html.escape(snap["player"])}</span></div>')
+    parts.append(_board_side_html(boards[target_user], target_user, is_you=True,
+                                  is_turn=(snap["player"] == target_user)))
+    parts.append('</div>')
+    st.markdown("".join(parts), unsafe_allow_html=True)
 
     # Coaching overlay for this turn, if it was yours and has advice.
     if tn in advice_map:
