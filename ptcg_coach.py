@@ -1820,6 +1820,9 @@ if st.session_state.get("analysis"):
     deck_dict = a["deck_dict"]
     log_input = a["log_input"]
     target_user = a["target_user"]
+    # Name -> set-code from THIS game's log, so every card thumbnail shows the exact
+    # printing played (not the newest same-name card, e.g. Mega Latias ex).
+    name_code_map = build_name_code_map(log_input or "")
 
     tab1, tab2, tab3, tab4 = st.tabs(
         ["📊 Match Overview", "🧠 AI Coach Summary", "⚔️ Turn-by-Turn Analysis", "🎬 Replay"])
@@ -1888,8 +1891,7 @@ if st.session_state.get("analysis"):
 
         st.subheader("🤖 The Grandmaster's Verdict")
         verdict_pool = set(deck_dict.keys()) | extract_card_names(log_input or "")
-        verdict_codes = build_name_code_map(log_input or "")
-        render_verdict(summary, verdict_pool, verdict_codes)
+        render_verdict(summary, verdict_pool, name_code_map)
 
         st.divider()
         st.subheader("💬 Ask the Coach")
@@ -1943,7 +1945,7 @@ if st.session_state.get("analysis"):
                         with text_col: st.markdown(f'<div class="ai-box">🧠 <b>AI Better Move:</b> {ai_text}</div>', unsafe_allow_html=True)
                         with img_col:
                             if ai_card and ai_card.lower() != "none":
-                                img_url = get_card_image(ai_card)
+                                img_url = get_card_image(ai_card, name_code_map.get(ai_card))
                                 if img_url: st.image(img_url, width=120)
 
                 heuristics = analyze_turn_heuristics(t['actions'], t['is_me'], t['number'], t.get('player_turn_num', 0))
