@@ -494,6 +494,19 @@ def fetch_card_text(card_name: str) -> str:
         subtypes = c.get("subtypes") or []
         head = supertype + (f" - {', '.join(subtypes)}" if subtypes else "")
         parts = [head]
+        # Deterministic, un-missable prize flag. The model kept overriding the
+        # buried "takes N Prize cards" rule (e.g. calling a regular 2-Prize ex a
+        # 3-Prize target because the deck also runs Mega ex), so pull the number
+        # straight from the card's own prize rule and state it up front.
+        if supertype == "Pokémon":
+            prizes = 1
+            for rule in c.get("rules", []):
+                mp = re.search(r"takes\s+(\d+)\s+Prize", rule, re.IGNORECASE)
+                if mp:
+                    prizes = int(mp.group(1))
+                    break
+            parts.append(f"🎯 Worth EXACTLY {prizes} Prize card(s) when Knocked Out "
+                         f"(do not use any other number for this card)")
         for ab in c.get("abilities", []):
             parts.append(f"Ability [{ab.get('name', '')}]: {ab.get('text', '')}")
         for at in c.get("attacks", []):
