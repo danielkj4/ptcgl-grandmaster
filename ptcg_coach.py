@@ -1233,6 +1233,24 @@ def _md_inline(text):
     t = re.sub(r'(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)', r'<em>\1</em>', t)
     return t
 
+# "(set_code) Card Name" up to the next action word / punctuation — same shape the
+# parser uses, but it also keeps the code so we can resolve the EXACT printing.
+_CODE_NAME_RE = re.compile(
+    r'\(([a-z0-9][a-z0-9_\-]*)\)\s+(.+?)'
+    r'(?=\s+(?:to|on|in|was|is|used|from|and|for|into)\b|[,.]|$)', re.IGNORECASE)
+
+def build_name_code_map(log_text):
+    """Map a clean card name -> the PTCGL set-code it was played with THIS game, so
+    verdict thumbnails show the exact printing used, not the newest same-name card.
+    (Without the code, a name-only lookup for 'Latias ex' now returns Mega Latias ex,
+    which is a different, newer card.) First code seen for a name wins."""
+    m = {}
+    for code, raw in _CODE_NAME_RE.findall(log_text or ""):
+        name = clean_card_name(raw)
+        if name and name not in m:
+            m[name] = code
+    return m
+
 # Each verdict finding: (label, css-kind, icon).
 _VERDICT_PARTS = [
     ("Turning Point", "turn", "🔀"),
@@ -1259,12 +1277,12 @@ def _cards_in_text(body, pool):
     hits.sort(key=lambda n: body.lower().find(n.lower()))
     return hits[:4]
 
-def _verdict_card_html(label, kind, icon, body, pool):
+def _verdict_card_html(label, kind, icon, body, pool, code_map):
     turn = re.search(r'\bTurn\s+(\d+)', body)
     badge = f'<span class="vc-turn-badge">Turn {turn.group(1)}</span>' if turn else ""
     thumbs = ""
     for nm in _cards_in_text(body, pool):
-        img = get_card_image(nm)
+        img = get_card_image(nm, code_map.get(nm))
         if img:
             thumbs += (f'<div class="vc-thumb"><img src="{html.escape(img)}" '
                        f'alt="{html.escape(nm)}"><span>{html.escape(nm)}</span></div>')
@@ -1276,17 +1294,18 @@ def _verdict_card_html(label, kind, icon, body, pool):
             f'<span class="vc-label">{label}</span>{badge}</div>'
             f'<div class="vc-body">{_md_inline(body.strip())}</div>{thumbs_html}</div>')
 
-def render_verdict(summary, pool):
+def render_verdict(summary, pool, code_map=None):
     """Render the Grandmaster's Verdict as three color-coded finding cards with
     card-art thumbnails. Falls back to the plain box if the summary isn't the
     expected three-part format (e.g. an app warning)."""
     if not isinstance(summary, str) or not summary.strip():
         return
+    code_map = code_map or {}
     segs = {m.group(1).title(): m.group(2).strip() for m in _VERDICT_RE.finditer(summary)}
     if not segs:
         st.markdown(f'<div class="ai-box">{summary}</div>', unsafe_allow_html=True)
         return
-    cards = [_verdict_card_html(label, kind, icon, segs[label], pool)
+    cards = [_verdict_card_html(label, kind, icon, segs[label], pool, code_map)
              for (label, kind, icon) in _VERDICT_PARTS if segs.get(label)]
     st.markdown(f'<div class="verdict-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
 
@@ -1869,7 +1888,8 @@ if st.session_state.get("analysis"):
 
         st.subheader("🤖 The Grandmaster's Verdict")
         verdict_pool = set(deck_dict.keys()) | extract_card_names(log_input or "")
-        render_verdict(summary, verdict_pool)
+        verdict_codes = build_name_code_map(log_input or "")
+        render_verdict(summary, verdict_pool, verdict_codes)
 
         st.divider()
         st.subheader("💬 Ask the Coach")
