@@ -429,6 +429,38 @@ def generate_ai_context(turns):
     return context
 
 # --- 4b. CARD ORACLE TEXT (Ground-truth card effects from pokemontcg.io) ---
+# Conditional-trigger clauses that gate WHETHER an Ability/attack can be used at
+# all (an activation prerequisite), as opposed to a conditional effect. Pulling
+# these out and flagging them explicitly stops the coach from grading a setup
+# move (one that creates the required board state) as a blunder — e.g. benching
+# a Colorless Mega Evolution Pokémon ex to enable Talonflame ex's "Excited Dive".
+_ACT_COND_PATTERNS = [
+    re.compile(r'\bif you have [^.,]*?\bin play', re.I),
+    re.compile(r'\bif this Pok[eé]mon is (?:in your hand|on your Bench|in the Active Spot|in play)', re.I),
+    re.compile(r'\bas long as [^.,]+', re.I),
+    re.compile(r'\bonly if [^.]+', re.I),
+    re.compile(r'\bif you have \d+ or more [^.,]+', re.I),
+]
+
+def _activation_notes(card):
+    """Explicit 'X works only when Y' notes for a card's Abilities/attacks, so the
+    activation requirement is a flagged checklist line, not buried in prose."""
+    notes = []
+    for items in (card.get("abilities") or [], card.get("attacks") or []):
+        for it in items:
+            txt = it.get("text") or ""
+            conds, seen = [], set()
+            for rx in _ACT_COND_PATTERNS:
+                for m in rx.finditer(txt):
+                    phrase = re.sub(r'^(?:only if|if|as long as)\s+', '', m.group(0).strip(), flags=re.I).rstrip('.')
+                    key = phrase.lower()
+                    if phrase and key not in seen:
+                        seen.add(key)
+                        conds.append(phrase)
+            if conds:
+                notes.append(f"{it.get('name', '?')} works only when: {'; '.join(conds)}")
+    return notes
+
 @st.cache_data(show_spinner=False)
 def fetch_card_text(card_name: str) -> str:
     """Fetch a card's oracle text from pokemontcg.io. Cached across reruns.
@@ -469,6 +501,9 @@ def fetch_card_text(card_name: str) -> str:
             parts.append(f"Attack [{at.get('name', '')}] ({cost}): {at.get('text', '')}")
         for rule in c.get("rules", []):
             parts.append(rule)
+        act_notes = _activation_notes(c)
+        if act_notes:
+            parts.append("⚙️ Activation conditions — " + " || ".join(act_notes))
         body = " | ".join(p for p in parts if p and p.strip())
         return f"{card_name} — {body}"
     except Exception:
@@ -596,9 +631,10 @@ CRITICAL RULES FOR ADVICE:
    - At most ONE manual Energy attachment from hand per turn, unless a card's oracle text explicitly grants an extra attachment.
    - At most ONE Stadium played per turn; you may retreat only ONCE per turn unless a card says otherwise.
    - You cannot evolve a Pokémon the same turn it was played or placed, and cannot evolve on your very first turn of the game.
-7. If you recommend a card, put its exact name in BRACKETS at the start of the line.
-8. If their turn was optimal, or if they had no better options in hand, reply with: "[None] Optimal play based on your hand."
-9. THE LESSON IS THE MOST IMPORTANT PART OF YOUR OUTPUT. Pick the ONE decision that most changed how this game went and teach it properly — depth on a single decision beats shallow notes on every turn. The PRINCIPLE must be transferable: state it so it applies in a future game with completely different cards. Do not put card names in the PRINCIPLE. If they played cleanly, still pick the most instructive moment and teach why that line was correct.
+7. SETUP MOVES ARE NOT BLUNDERS — JUDGE THE LINE, NOT THE ISOLATED TURN. Before you call any play a mistake or a waste, check whether it satisfies an ACTIVATION CONDITION of another card the player has in hand, deck, or play. Many Abilities and attacks only work when a specific board state exists — e.g. an Ability usable "only if you have a [type] Pokémon in play", "if this Pokémon is in your hand", "as long as this Pokémon is on your Bench", or an Energy/evolution enabler. The CARD ORACLE TEXT flags these as "⚙️ Activation conditions". A move whose purpose is to create the required condition (benching/promoting a Pokémon, getting a type into play, filling the bench) is CORRECT SEQUENCING, not a blunder — even if that single action looks weak in isolation. Concrete example of the mistake to avoid: do NOT criticise benching a Colorless Mega Evolution Pokémon ex if that is exactly the condition another card (e.g. Talonflame ex's "Excited Dive") needs to come into play. When you evaluate a turn, scan every other relevant card's activation conditions first and ask "did this action unlock something?" before judging it.
+8. If you recommend a card, put its exact name in BRACKETS at the start of the line.
+9. If their turn was optimal, or if they had no better options in hand, reply with: "[None] Optimal play based on your hand."
+10. THE LESSON IS THE MOST IMPORTANT PART OF YOUR OUTPUT. Pick the ONE decision that most changed how this game went and teach it properly — depth on a single decision beats shallow notes on every turn. The PRINCIPLE must be transferable: state it so it applies in a future game with completely different cards. Do not put card names in the PRINCIPLE. If they played cleanly, still pick the most instructive moment and teach why that line was correct.
 You are a strict, professional Pokemon TCG coach focusing on the current Standard meta. You NEVER hallucinate cards and ALWAYS read the player's actions before giving advice. Your job is to make the player BETTER, not to narrate what happened."""
 
         prompt = f"""You are reviewing a match for '{target_user}'.
@@ -698,6 +734,7 @@ RULES:
 - A card's effect is defined ONLY by the CARD ORACLE TEXT below. NEVER guess or rely on memory for what a card does.
 - A card listed in a turn's Discard Pile is NOT directly playable; it can only return via a recovery card.
 - FIXED PER-TURN LIMITS, always in force: at most ONE Supporter per turn (across DIFFERENT Supporters, not just the same card — Pokégear 3.0 is an Item, not a Supporter); at most ONE manual Energy attachment from hand per turn unless a card grants more; at most ONE Stadium and ONE retreat per turn; a Pokémon cannot evolve the turn it was played, nor on your first turn. Never suggest a line that breaks these.
+- SETUP MOVES ARE NOT BLUNDERS. Before calling a play a mistake, check whether it satisfies an ACTIVATION CONDITION of another of the player's cards (an Ability/attack usable only when a certain Pokémon/type is in play, when a card is in hand or on the Bench, etc. — flagged as "⚙️ Activation conditions" in the oracle text). A move that creates a required condition is correct sequencing, not a waste. E.g. benching a Colorless Mega Evolution Pokémon ex is what enables Talonflame ex's "Excited Dive" — judge the whole line, not the single action.
 - Reference specific turns and cards from this match. Be concise and concrete.
 - '{ctx['target_user']}' is the player you are coaching.
 

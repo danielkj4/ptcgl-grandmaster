@@ -38,6 +38,21 @@ then add it to both system prompts in `ptcg_coach.py`.
   3 Colorless only on an Evolution, and just 1 on a Basic. (Added after the coach
   misread Ignition Energy because the card reference omitted the Pokémon's stage.)
 
+### Sequencing & activation conditions
+- **Setup moves are not blunders — judge the line, not the isolated turn.** Before
+  calling a play a mistake, the coach must check whether it satisfies an
+  **activation condition** of another of the player's cards. (Added after it
+  flagged *benching Mega Kangaskhan ex* as bad — when that bench play is exactly
+  the "Colorless Mega Evolution Pokémon ex in play" condition **Talonflame ex's
+  Excited Dive** needs to come down from hand.)
+- **Activation conditions are extracted and flagged explicitly.** `fetch_card_text`
+  now scans each Ability/attack for gating clauses (`if you have … in play`,
+  `if this Pokémon is in your hand`, `as long as …`, `only if …`) via
+  `_activation_notes()` and appends a `⚙️ Activation conditions —` line to the
+  oracle entry. This turns an implicit requirement the model had to *notice* into
+  an explicit checklist line it can't miss. (Deterministic regex over text we
+  already fetch — no ML, no extra API calls.)
+
 ### Reasoning constraints (not game rules, but pinned behavior)
 - A card already played this turn can't be played again.
 - A card in the discard pile isn't directly playable — only via a recovery card.
