@@ -45,6 +45,14 @@ then add it to both system prompts in `ptcg_coach.py`.
   flagged *benching Mega Kangaskhan ex* as bad — when that bench play is exactly
   the "Colorless Mega Evolution Pokémon ex in play" condition **Talonflame ex's
   Excited Dive** needs to come down from hand.)
+- **Read each Pokémon's ROLE from its Ability — don't judge support by offense.**
+  Many Pokémon are played for a passive/utility Ability (free retreat, energy
+  acceleration, draw, damage prevention), not to attack. The coach must not say a
+  card "contributed nothing" just because it dealt no damage. If a support card is
+  also a prize liability (a 2-Prize ex exposed to Boss's Orders), it's a **trade-off
+  to weigh**, not a clear-cut blunder. (Added after it flagged benching **Latias ex**
+  — whose "Skyliner" gives all Basics free retreat, powering the Joltik→Kangaskhan
+  charge/pivot engine — as a pointless blunder for "not attacking".)
 - **Activation conditions are extracted and flagged explicitly.** `fetch_card_text`
   now scans each Ability/attack for gating clauses (`if you have … in play`,
   `if this Pokémon is in your hand`, `as long as …`, `only if …`) via
