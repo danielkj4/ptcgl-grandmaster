@@ -155,6 +155,26 @@ def setup_ui():
         .mat-mid { text-align: center; margin: 6px 0; color: #66fcf1 !important; font-weight: 700; letter-spacing: .5px; font-size: .9rem; position: relative; }
         .mat-mid span { background: #0b0f1a; padding: 0 12px; position: relative; z-index: 1; }
         .mat-mid:before { content: ''; position: absolute; top: 50%; left: 4%; right: 4%; height: 1px; background: linear-gradient(90deg, transparent, rgba(102,252,241,0.4), transparent); }
+        /* ===== Grandmaster's Verdict cards ===== */
+        .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 14px; margin-bottom: 8px; }
+        .verdict-card { border-radius: 14px; padding: 14px 16px 16px; background: rgba(13,18,34,0.72); border: 1px solid rgba(255,255,255,0.07); border-top: 4px solid #888; box-shadow: 0 6px 18px rgba(0,0,0,0.45); backdrop-filter: blur(8px); display: flex; flex-direction: column; }
+        .verdict-card.vc-turn { border-top-color: #f6c945; background: linear-gradient(180deg, rgba(246,201,69,0.10), rgba(13,18,34,0.72) 60%); }
+        .verdict-card.vc-blunder { border-top-color: #e4572e; background: linear-gradient(180deg, rgba(228,87,46,0.11), rgba(13,18,34,0.72) 60%); }
+        .verdict-card.vc-great { border-top-color: #38c172; background: linear-gradient(180deg, rgba(56,193,114,0.11), rgba(13,18,34,0.72) 60%); }
+        .vc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .vc-icon { font-size: 1.25rem; line-height: 1; }
+        .vc-label { font-weight: 800; font-size: .98rem; letter-spacing: .3px; }
+        .vc-turn .vc-label { color: #ffdd77 !important; }
+        .vc-blunder .vc-label { color: #ff9b84 !important; }
+        .vc-great .vc-label { color: #86e8ab !important; }
+        .vc-turn-badge { margin-left: auto; font-size: .72rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); color: #e8f3ff !important; white-space: nowrap; }
+        .vc-body { color: #eef4ff !important; font-size: .95rem; line-height: 1.5; }
+        .vc-body strong { color: #ffffff !important; }
+        .vc-thumbs { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 10px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.12); }
+        .vc-thumb { width: 54px; text-align: center; }
+        .vc-thumb img { width: 100%; border-radius: 5px; display: block; box-shadow: 0 2px 7px rgba(0,0,0,0.6); }
+        .vc-thumb span { display: block; font-size: .54rem; opacity: .8; margin-top: 3px; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vc-chip { display: inline-flex; align-items: center; font-size: .72rem; padding: 3px 9px; border-radius: 999px; background: rgba(102,252,241,0.12); border: 1px solid rgba(102,252,241,0.28); color: #bdeef0 !important; }
         /* Lock the app to its dark look: hide the toolbar/menu that exposes the Light/Dark theme switcher. */
         [data-testid="stToolbar"] { display: none !important; }
         #MainMenu { visibility: hidden !important; }
@@ -1168,6 +1188,71 @@ def can_drill(lesson, turns):
     """A drill needs a strong-line answer and a real own-turn to stage."""
     return bool(lesson.get("better_line") and _lesson_turn_obj(lesson, turns))
 
+def _md_inline(text):
+    """Escape HTML, then re-enable **bold** / *italic* so verdict prose keeps its
+    emphasis when rendered inside a raw HTML card."""
+    t = html.escape(text)
+    t = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', t)
+    t = re.sub(r'(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)', r'<em>\1</em>', t)
+    return t
+
+# Each verdict finding: (label, css-kind, icon).
+_VERDICT_PARTS = [
+    ("Turning Point", "turn", "🔀"),
+    ("Blunder", "blunder", "⚠️"),
+    ("Great Move", "great", "✨"),
+]
+_VERDICT_RE = re.compile(
+    r'\*\*\s*(Turning Point|Blunder|Great Move)\s*:?\s*\*\*\s*'
+    r'(.*?)(?=\*\*\s*(?:Turning Point|Blunder|Great Move)\s*:?\s*\*\*|$)',
+    re.IGNORECASE | re.DOTALL)
+
+def _cards_in_text(body, pool):
+    """Card names from `pool` that appear in `body`, in reading order (max 4).
+    Longer names are matched first and masked so a substring (e.g. 'Kangaskhan'
+    inside 'Mega Kangaskhan ex') doesn't match twice."""
+    text, hits = body, []
+    for name in sorted(pool, key=len, reverse=True):
+        if len(name) < 3:
+            continue
+        rx = re.compile(r'(?<![A-Za-z0-9])' + re.escape(name) + r'(?![A-Za-z0-9])', re.IGNORECASE)
+        if rx.search(text):
+            hits.append(name)
+            text = rx.sub(" " * len(name), text)
+    hits.sort(key=lambda n: body.lower().find(n.lower()))
+    return hits[:4]
+
+def _verdict_card_html(label, kind, icon, body, pool):
+    turn = re.search(r'\bTurn\s+(\d+)', body)
+    badge = f'<span class="vc-turn-badge">Turn {turn.group(1)}</span>' if turn else ""
+    thumbs = ""
+    for nm in _cards_in_text(body, pool):
+        img = get_card_image(nm)
+        if img:
+            thumbs += (f'<div class="vc-thumb"><img src="{html.escape(img)}" '
+                       f'alt="{html.escape(nm)}"><span>{html.escape(nm)}</span></div>')
+        else:
+            thumbs += f'<span class="vc-chip">{html.escape(nm)}</span>'
+    thumbs_html = f'<div class="vc-thumbs">{thumbs}</div>' if thumbs else ""
+    return (f'<div class="verdict-card vc-{kind}">'
+            f'<div class="vc-head"><span class="vc-icon">{icon}</span>'
+            f'<span class="vc-label">{label}</span>{badge}</div>'
+            f'<div class="vc-body">{_md_inline(body.strip())}</div>{thumbs_html}</div>')
+
+def render_verdict(summary, pool):
+    """Render the Grandmaster's Verdict as three color-coded finding cards with
+    card-art thumbnails. Falls back to the plain box if the summary isn't the
+    expected three-part format (e.g. an app warning)."""
+    if not isinstance(summary, str) or not summary.strip():
+        return
+    segs = {m.group(1).title(): m.group(2).strip() for m in _VERDICT_RE.finditer(summary)}
+    if not segs:
+        st.markdown(f'<div class="ai-box">{summary}</div>', unsafe_allow_html=True)
+        return
+    cards = [_verdict_card_html(label, kind, icon, segs[label], pool)
+             for (label, kind, icon) in _VERDICT_PARTS if segs.get(label)]
+    st.markdown(f'<div class="verdict-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+
 def _render_spot(lesson, turn_obj):
     hand = ", ".join(turn_obj["hand_snapshot"]) or "Empty / Unknown"
     disc = ", ".join(turn_obj.get("discard_snapshot", [])) or "Empty"
@@ -1748,7 +1833,8 @@ if st.session_state.get("analysis"):
             st.divider()
 
         st.subheader("🤖 The Grandmaster's Verdict")
-        st.markdown(f'<div class="ai-box">{summary}</div>', unsafe_allow_html=True)
+        verdict_pool = set(deck_dict.keys()) | extract_card_names(log_input or "")
+        render_verdict(summary, verdict_pool)
 
         st.divider()
         st.subheader("💬 Ask the Coach")
