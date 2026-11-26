@@ -61,6 +61,19 @@ then add it to both system prompts in `ptcg_coach.py`.
   an explicit checklist line it can't miss. (Deterministic regex over text we
   already fetch — no ML, no extra API calls.)
 
+### Prize values & self-applying abilities
+- **Prize values come from the card's own rule — never guessed.** Regular ex/V = 2
+  Prizes; **Mega Evolution Pokémon ex** (subtype MEGA, "Mega Evolution ex Rule") =
+  3 Prizes; other Pokémon = 1. (Added after the coach called **Latias ex** — a
+  regular ex worth **2** Prizes — a "3 Prize target", leaking the 3-Prize value
+  from the deck's Mega ex like Mega Golisopod/Kangaskhan ex.)
+- **A Pokémon gets its own Abilities, incl. retreat reduction.** The printed Retreat
+  Cost can be zeroed by an ability. **Latias ex** is a Basic, so its own Skyliner
+  ("your Basic Pokémon have no Retreat Cost") makes ITS retreat 0 — it needs no Tool
+  (Air Balloon) to retreat. The coach must not claim a retreat/Tool problem when an
+  in-play ability already makes retreat free. (Note: oracle `convertedRetreatCost`
+  shows the PRINTED cost (2 for Latias), so the model must apply the ability itself.)
+
 ### Reasoning constraints (not game rules, but pinned behavior)
 - A card already played this turn can't be played again.
 - A card in the discard pile isn't directly playable — only via a recovery card.
