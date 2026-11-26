@@ -1452,7 +1452,7 @@ def render_replay(a):
 
     if lesson_turn == tn:
         st.markdown('<div class="ai-box">🎓 <b>This was the turning point of the game</b> — see the '
-                    'AI Coach Summary tab for the lesson and drill.</div>', unsafe_allow_html=True)
+                    'AI Coach Summary tab for the lesson.</div>', unsafe_allow_html=True)
 
     boards = snap["boards"]
     opp = next((p for p in boards if p != target_user), None)
@@ -1525,7 +1525,6 @@ def render_how_to_use():
         "*better move* with the card pictured.\n"
         "- **The Lesson** — the single most important decision of the game, taught as a "
         "transferable principle you can use in future games with different cards.\n"
-        "- **Drill** — try the key decision yourself and get graded.\n"
         "- **Game Replay** — scrub through the reconstructed board, turn by turn.\n"
         "- **Ask the Coach** — follow-up questions about any play, matchup, or line.")
 
@@ -1817,12 +1816,11 @@ if st.session_state.get("analysis"):
             else: st.success("All key cards accounted for!")
 
     with tab2:
-        # ---- The teaching moment: a drill you commit to, or a static lesson ----
+        # ---- The teaching moment: a static lesson ----
+        # The interactive "guess your play" drill is disabled for now; flip to
+        # render_drill(lesson, turns, api_key) when can_drill() is true to restore it.
         lesson = a.get("lesson") or {}
-        if can_drill(lesson, turns):
-            render_drill(lesson, turns, api_key)
-            st.divider()
-        elif lesson:
+        if lesson:
             st.subheader("🎓 The Lesson From This Game")
             turn_obj = _lesson_turn_obj(lesson, turns)
             if turn_obj:
