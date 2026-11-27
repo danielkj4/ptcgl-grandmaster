@@ -9,7 +9,7 @@ Built with [Streamlit](https://streamlit.io/) and the
 
 **▶️ [Live demo](https://tcg-grandmaster.streamlit.app/)** — paste a PTCG Live
 battle log and try it in your browser, no setup or API key required. (A few free
-analyses per session.)
+analyses per day.)
 
 ## Features
 
@@ -63,7 +63,11 @@ The app runs in one of two modes automatically, based on whether an
 - **Hosted mode** (key set in secrets): the owner's key is used for all visitors,
   so no key box is shown; history is kept per browser session instead of on disk;
   the server-clipboard import is hidden (visitors paste their log); and each
-  session is capped at `MAX_ANALYSES_PER_SESSION` analyses to control cost.
+  visitor is capped at `MAX_ANALYSES_PER_SESSION` analyses per day to control
+  cost. The daily cap is tracked server-side by a hash of the client IP so it
+  survives page refreshes; it's best-effort (resets on app reboot, shared IPs
+  share a tally, a new network bypasses it), so set a spend cap as the real
+  backstop.
 
 To deploy on [Streamlit Community Cloud](https://share.streamlit.io), point it at
 this repo with `ptcg_coach.py` as the main file and set these secrets:

@@ -45,6 +45,47 @@ try:
 except Exception:
     MAX_ANALYSES_PER_SESSION = 5
 
+# --- Hosted usage limit that SURVIVES a page refresh -------------------------
+# st.session_state is recreated on every full refresh, so a session-scoped
+# counter let visitors reset the limit just by reloading (= unlimited reviews).
+# Keep the tally in one process-wide store (shared across all sessions/reruns via
+# cache_resource) keyed by a HASH of the client's IP, so a refresh keeps the same
+# count. Daily reset. This is best-effort: it resets if the app reboots, a shared
+# IP shares a tally, and a new network/VPN bypasses it — the Anthropic Console
+# monthly spend cap is the real, hard cost guarantee.
+@st.cache_resource(show_spinner=False)
+def _usage_store():
+    return {}
+
+def _usage_key():
+    try:
+        xff = st.context.headers.get("X-Forwarded-For", "") or ""
+        ip = xff.split(",")[0].strip()
+        if ip:
+            return "ip:" + hashlib.sha256(ip.encode()).hexdigest()[:16]
+    except Exception:
+        pass
+    # Fallback: per-session token (doesn't survive refresh, but never worse than
+    # the old behaviour) when no client IP is available.
+    if "_usage_sid" not in st.session_state:
+        st.session_state["_usage_sid"] = os.urandom(8).hex()
+    return "sid:" + st.session_state["_usage_sid"]
+
+def analyses_used():
+    rec = _usage_store().get(_usage_key())
+    if not rec or rec.get("day") != datetime.date.today().isoformat():
+        return 0
+    return rec.get("count", 0)
+
+def record_analysis():
+    store, k = _usage_store(), _usage_key()
+    today = datetime.date.today().isoformat()
+    rec = store.get(k)
+    if not rec or rec.get("day") != today:
+        rec = {"day": today, "count": 0}
+    rec["count"] += 1
+    store[k] = rec
+
 # --- 1. LOCAL STORAGE SETUP (Deck Manager) ---
 DECKS_FILE = "saved_decks.json"
 
@@ -1613,7 +1654,7 @@ def render_how_to_use():
         st.divider()
         st.caption(
             f"This is the free hosted version — up to {MAX_ANALYSES_PER_SESSION} analyses "
-            "per session (reload the page to reset). Your saved decks and game history live "
+            "per day. Your saved decks and game history live "
             "in your browser session only and aren't shared with anyone else.")
 
 # --- 7. MAIN APP LOOP ---
@@ -1628,8 +1669,8 @@ with st.sidebar:
         # Hosted deployment: the owner supplies the key via Streamlit secrets,
         # so visitors never see or enter one.
         api_key = OWNER_KEY
-        _left = MAX_ANALYSES_PER_SESSION - st.session_state.get("analyses_used", 0)
-        st.caption(f"✨ Free to use — {max(_left, 0)} of {MAX_ANALYSES_PER_SESSION} analyses left this session.")
+        _left = MAX_ANALYSES_PER_SESSION - analyses_used()
+        st.caption(f"✨ Free to use — {max(_left, 0)} of {MAX_ANALYSES_PER_SESSION} analyses left today.")
     else:
         try: saved_key = st.secrets.get("ANTHROPIC_API_KEY", "")
         except: saved_key = ""
@@ -1743,11 +1784,12 @@ if log_input:
 
         if st.button("🚀 Execute Analysis Engine", type="primary") or auto_run:
             # On the hosted app the owner pays for every analysis, so cap how many
-            # a single visitor session can run. (No limit when running locally.)
-            if HOSTED and st.session_state.get("analyses_used", 0) >= MAX_ANALYSES_PER_SESSION:
+            # a single visitor can run per day. (No limit when running locally.)
+            # The count is keyed by client IP and survives page refreshes.
+            if HOSTED and analyses_used() >= MAX_ANALYSES_PER_SESSION:
                 st.error(
-                    f"You've used all {MAX_ANALYSES_PER_SESSION} free analyses for this session. "
-                    "Reload the page later to reset, or run the app locally with your own API key.")
+                    f"You've used all {MAX_ANALYSES_PER_SESSION} free analyses for today. "
+                    "Check back tomorrow, or run the app locally with your own API key.")
                 st.stop()
 
             save_last_player(target_user)
@@ -1775,10 +1817,10 @@ if log_input:
                 detected_matchup = detect_opponent_deck(log_input, target_user)
                 game_result = detect_result(log_input, target_user)
 
-            # Count a hosted analysis against the session quota only when the AI
+            # Count a hosted analysis against the daily quota only when the AI
             # actually produced a result (a connection error shouldn't burn it).
             if HOSTED and summary and not str(summary).startswith(("❌", "⚠️")):
-                st.session_state["analyses_used"] = st.session_state.get("analyses_used", 0) + 1
+                record_analysis()
 
             # Save this game to cross-game history (dedup by log+player), unless the AI errored.
             saved_to_history = False
