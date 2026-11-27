@@ -229,6 +229,40 @@ def clear_history():
         return
     save_history([])
 
+def build_player_profile(history, target_user=None, min_games=2):
+    """A compact, personalized summary of a player's recurring tendencies across
+    their PAST analyzed games, injected into the coaching prompts so advice is
+    tailored to the habits they actually keep repeating (Stage 1 "learning").
+    Returns "" when there isn't enough history to be meaningful."""
+    games = [g for g in (history or []) if not target_user or g.get("player") == target_user]
+    if len(games) < min_games:
+        return ""
+    n = len(games)
+    wins = sum(1 for g in games if g.get("result") == "Win")
+    losses = sum(1 for g in games if g.get("result") == "Loss")
+    wc = Counter()
+    for g in games:
+        for w in (g.get("weaknesses") or []):
+            wc[w] += 1
+    # A weakness only counts as "recurring" if it shows up in at least 2 games.
+    top_weak = [f"{w} ({c}/{n} games)" for w, c in wc.most_common(3) if c >= 2]
+    mu = {}
+    for g in games:
+        opp = g.get("opponent_deck") or "Unknown"
+        d = mu.setdefault(opp, {"W": 0, "L": 0, "G": 0})
+        d["G"] += 1
+        if g.get("result") == "Win": d["W"] += 1
+        elif g.get("result") == "Loss": d["L"] += 1
+    rated = [(o, d) for o, d in mu.items() if d["G"] >= 2 and o != "Unknown"]
+    worst = min(rated, key=lambda x: (x[1]["W"] - x[1]["L"]), default=None)
+    lines = [f"Across {n} past games tracked for this player (record {wins}-{losses})."]
+    if top_weak:
+        lines.append("Recurring weaknesses (most frequent first): " + "; ".join(top_weak) + ".")
+    if worst:
+        o, d = worst
+        lines.append(f"Toughest matchup so far: vs {o} ({d['W']}-{d['L']}).")
+    return "\n".join(lines)
+
 # --- 2. PREMIUM UI / UX SETUP ---
 def setup_ui():
     st.set_page_config(page_title="PTCGL Grandmaster", layout="wide", page_icon="🔮",
@@ -755,7 +789,7 @@ def analyze_turn_heuristics(actions, is_me, turn_num, player_turn_num):
     return recs
 
 # --- 6. AI ANALYSIS (Hand-Aware & Decklist Locked) ---
-def get_advanced_ai_review(turns, target_user, api_key, stats, deck_dict, legal_marks=None, log_text=""):
+def get_advanced_ai_review(turns, target_user, api_key, stats, deck_dict, legal_marks=None, log_text="", player_profile=""):
     if not api_key: return "⚠️ Missing API Key — enter your key in the sidebar.", {}, [], {}, {}
     try:
         client = anthropic.Anthropic(api_key=api_key)
@@ -785,9 +819,17 @@ CRITICAL RULES FOR ADVICE:
 10. THE LESSON IS THE MOST IMPORTANT PART OF YOUR OUTPUT. Pick the ONE decision that most changed how this game went and teach it properly — depth on a single decision beats shallow notes on every turn. The PRINCIPLE must be transferable: state it so it applies in a future game with completely different cards. Do not put card names in the PRINCIPLE. If they played cleanly, still pick the most instructive moment and teach why that line was correct.
 You are a strict, professional Pokemon TCG coach focusing on the current Standard meta. You NEVER hallucinate cards and ALWAYS read the player's actions before giving advice. Your job is to make the player BETTER, not to narrate what happened."""
 
+        profile_block = ""
+        if player_profile:
+            profile_block = f"""
+PLAYER PROFILE — recurring patterns from THIS player's PAST games (personalize to this):
+{player_profile}
+How to use it: if one of these recurring weaknesses ALSO occurs in THIS game, name it as a habit they keep repeating and tie your Lesson to breaking it. If a listed weakness does NOT occur here, do NOT force it or invent an instance — judge only what actually happened in this game. This is context about the player, never a replacement for reading this specific match.
+"""
+
         prompt = f"""You are reviewing a match for '{target_user}'.
 PLAYER'S EXACT DECKLIST: [{deck_str}]
-
+{profile_block}
 CARD ORACLE TEXT (the ONLY source of truth for what each card does — includes BOTH the player's cards AND the opponent's):
 {card_reference if card_reference else "No oracle text available — reason only from the actions shown in the log."}
 
@@ -890,7 +932,7 @@ RULES:
 - '{ctx['target_user']}' is the player you are coaching.
 
 PLAYER'S DECKLIST: [{ctx['deck_str']}]
-
+{("PLAYER PROFILE — recurring patterns from their PAST games (personalize to this; don't force a pattern that isn't present in this match):" + chr(10) + ctx['player_profile'] + chr(10)) if ctx.get('player_profile') else ''}
 CARD ORACLE TEXT:
 {ctx['card_reference'] if ctx['card_reference'] else 'No oracle text available — reason only from the actions in the log.'}
 
@@ -1914,9 +1956,15 @@ if log_input:
                 # (the coach prompt, the rotation check, and the saved context all share it).
                 legal_marks_now = get_legal_regulation_marks(api_key)
 
+                # Personalization: profile of this player's recurring tendencies
+                # from their PAST games (the current game isn't saved yet), injected
+                # so the coach tailors advice to the habits they keep repeating.
+                player_profile = build_player_profile(load_history(), target_user)
+
                 # --- Send to Hand-Aware AI ---
                 summary, advice_map, weakness_tags, weakness_evidence, lesson = get_advanced_ai_review(
-                    turns, target_user, api_key, stats, deck_dict, legal_marks_now, log_text=log_input)
+                    turns, target_user, api_key, stats, deck_dict, legal_marks_now,
+                    log_text=log_input, player_profile=player_profile)
 
                 # Data-driven rotation check (replaces the old hardcoded card list)
                 rotated_cards = find_rotated_cards(deck_dict, legal_marks_now)
@@ -1965,6 +2013,7 @@ if log_input:
                 "card_reference": build_card_reference(deck_dict, log_input),
                 "target_user": target_user,
                 "legal_marks": sorted(legal_marks_now),
+                "player_profile": player_profile,
             }
             # Fresh conversation, drill, and replay position for each new analysis.
             st.session_state.coach_messages = []

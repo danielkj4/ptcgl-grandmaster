@@ -28,6 +28,13 @@ sample decklists.
 matchup records, and a prioritized improvement plan. Drill into any weakness to see
 the exact turns across games where it happened.
 
+**🧠 Personalized coaching** — once you have a couple of tracked games, each new
+review is primed with a compact profile of your recurring tendencies (your most
+frequent weakness categories, win/loss record, toughest matchup) so the coach ties
+its lesson to the habits you keep repeating. It's retrieval, not training: the
+model isn't fine-tuned on your logs, it's handed a summary of them as context, and
+it's told not to force a pattern that isn't present in the current game.
+
 ## Anti-hallucination design
 
 The coach is deliberately constrained so it can't invent cards or rules:
