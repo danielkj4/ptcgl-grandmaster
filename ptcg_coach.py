@@ -217,21 +217,21 @@ def setup_ui():
         .vc-thumb img { width: 100%; border-radius: 5px; display: block; box-shadow: 0 2px 7px rgba(0,0,0,0.6); }
         .vc-thumb span { display: block; font-size: .54rem; opacity: .8; margin-top: 3px; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .vc-chip { display: inline-flex; align-items: center; font-size: .72rem; padding: 3px 9px; border-radius: 999px; background: rgba(102,252,241,0.12); border: 1px solid rgba(102,252,241,0.28); color: #bdeef0 !important; }
-        /* Lock the app to its dark look: hide the toolbar/menu that exposes the Light/Dark theme switcher. */
-        [data-testid="stToolbar"] { display: none !important; }
+        /* Lock the app to its dark look: hide the Deploy button and ⋮ menu (which
+           exposes the Light/Dark theme switcher) — but NOT the whole toolbar. The
+           sidebar's expand (») button lives INSIDE stToolbar, so hiding the toolbar
+           made a collapsed sidebar impossible to reopen (the arrow rendered 0x0). */
+        [data-testid="stToolbarActions"] { display: none !important; }
         #MainMenu { visibility: hidden !important; }
         header[data-testid="stHeader"] { background: transparent !important; }
         footer { visibility: hidden !important; }
-        /* Keep the "expand sidebar" arrow always visible & clickable when the
-           sidebar is collapsed (the transparent header can hide it). */
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="collapsedControl"] {
-            display: flex !important; visibility: visible !important; opacity: 1 !important;
-            z-index: 1000 !important; }
-        [data-testid="stSidebarCollapsedControl"] button,
-        [data-testid="collapsedControl"] button,
-        [data-testid="stSidebarCollapsedControl"] svg,
-        [data-testid="collapsedControl"] svg {
+        /* Always show the collapse («) and expand (») sidebar buttons in cyan, so
+           the sidebar can always be reopened (Streamlit hides them until hover). */
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="stExpandSidebarButton"] {
+            visibility: visible !important; opacity: 1 !important; }
+        [data-testid="stSidebarCollapseButton"] svg,
+        [data-testid="stExpandSidebarButton"] svg {
             color: #66fcf1 !important; fill: #66fcf1 !important; }
     </style>
     """
