@@ -2,3 +2,7 @@ streamlit
 anthropic
 requests
 pandas
+# Optional — only needed if you enable user accounts (Google login + Supabase).
+# The app runs fine without these configured; see README "User accounts".
+Authlib
+supabase

@@ -81,6 +81,62 @@ MAX_ANALYSES_PER_SESSION = "5"         # optional; defaults to 5
 Set a monthly spend limit in the [Anthropic Console](https://console.anthropic.com/)
 as a hard cost backstop.
 
+## User accounts (optional)
+
+Accounts are **off by default** — the app works without them (local JSON on your
+machine, session-scoped history when hosted). When you configure the two secrets
+below, a "Sign in with Google" button appears; signing in is **optional** for
+visitors, but a signed-in user's saved decks and game history persist in a
+database and sync across devices.
+
+It uses Streamlit's native OIDC login (`st.login`) plus a
+[Supabase](https://supabase.com) Postgres database.
+
+**1. Create the database (Supabase, free tier).** Create a project, then in the
+SQL editor run:
+
+```sql
+create table if not exists games (
+  user_email text not null,
+  id         text not null,
+  created_at timestamptz default now(),
+  data       jsonb not null,
+  primary key (user_email, id)
+);
+create table if not exists decks (
+  user_email text not null,
+  name       text not null,
+  decklist   text not null,
+  primary key (user_email, name)
+);
+```
+
+Grab the project URL and the **service_role** key (Settings → API). The key stays
+in Streamlit secrets (server-side, never sent to the browser); the app scopes
+every query to the signed-in user's email, so one shared key is safe here.
+
+**2. Create a Google OAuth client.** In the Google Cloud console, configure an
+OAuth consent screen, then create an **OAuth client ID** (type: Web app) with the
+authorized redirect URI set to `https://<your-app>.streamlit.app/oauth2callback`.
+Note the client ID and client secret.
+
+**3. Add the secrets:**
+
+```toml
+SUPABASE_URL = "https://xxxx.supabase.co"
+SUPABASE_KEY = "the-service_role-key"
+
+[auth]
+redirect_uri = "https://<your-app>.streamlit.app/oauth2callback"
+cookie_secret = "any-long-random-string"
+client_id = "xxxx.apps.googleusercontent.com"
+client_secret = "xxxx"
+server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration"
+```
+
+Save; the app reboots and the sign-in button appears. Running locally, use
+`http://localhost:8501/oauth2callback` as the redirect URI instead.
+
 ## Tests
 
 Log parsing lives in `ptcg_parser.py` with no Streamlit dependency, so it can be

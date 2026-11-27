@@ -86,22 +86,77 @@ def record_analysis():
     rec["count"] += 1
     store[k] = rec
 
+# --- Optional user ACCOUNTS (Google login + Supabase per-user storage) ---------
+# Activates only when both are configured in secrets: an [auth] section (Streamlit
+# native OIDC, e.g. Google) AND SUPABASE_URL/SUPABASE_KEY. Without them the app
+# behaves exactly as before (local JSON on your machine, session-scoped when
+# hosted). Login is OPTIONAL: anonymous visitors still get the session-scoped
+# experience; signed-in users get history + decks saved to the database, synced
+# across devices. See the README "User accounts" section for the one-time setup.
+def _has_section(name):
+    try:
+        return name in st.secrets
+    except Exception:
+        return False
+
+ACCOUNTS = _has_section("auth") and bool(_secret("SUPABASE_URL")) and bool(_secret("SUPABASE_KEY"))
+
+@st.cache_resource(show_spinner=False)
+def _db():
+    from supabase import create_client
+    return create_client(_secret("SUPABASE_URL"), _secret("SUPABASE_KEY"))
+
+def current_user():
+    """Email of the signed-in user, or None when accounts are off / not logged in."""
+    if not ACCOUNTS:
+        return None
+    try:
+        if st.user.is_logged_in:
+            return st.user.email
+    except Exception:
+        pass
+    return None
+
 # --- 1. LOCAL STORAGE SETUP (Deck Manager) ---
 DECKS_FILE = "saved_decks.json"
 
 def load_saved_decks():
+    user = current_user()
+    if user:
+        try:
+            res = _db().table("decks").select("name,decklist").eq("user_email", user).execute()
+            return {r["name"]: r["decklist"] for r in (res.data or [])}
+        except Exception as e:
+            st.warning(f"Couldn't load your saved decks: {e}")
+            return {}
     if os.path.exists(DECKS_FILE):
         with open(DECKS_FILE, "r") as f:
             return json.load(f)
     return {}
 
 def save_deck(deck_name, deck_text):
+    user = current_user()
+    if user:
+        try:
+            _db().table("decks").upsert(
+                {"user_email": user, "name": deck_name, "decklist": deck_text},
+                on_conflict="user_email,name").execute()
+        except Exception as e:
+            st.warning(f"Couldn't save your deck: {e}")
+        return
     decks = load_saved_decks()
     decks[deck_name] = deck_text
     with open(DECKS_FILE, "w") as f:
         json.dump(decks, f, indent=4)
 
 def delete_deck(deck_name):
+    user = current_user()
+    if user:
+        try:
+            _db().table("decks").delete().eq("user_email", user).eq("name", deck_name).execute()
+        except Exception as e:
+            st.warning(f"Couldn't delete your deck: {e}")
+        return
     decks = load_saved_decks()
     if deck_name in decks:
         del decks[deck_name]
@@ -118,9 +173,18 @@ WEAKNESS_CATEGORIES = [
 ]
 
 def load_history():
-    # Hosted: per-visitor history in session state (avoids mixing users on the
-    # shared server file, which Streamlit Cloud also wipes on redeploy). Local:
-    # a JSON file that persists across runs on your own machine.
+    # Signed-in: per-user rows in the database (persists across devices/sessions).
+    # Hosted + anonymous: per-visitor history in session state (wiped on refresh).
+    # Local: a JSON file that persists across runs on your own machine.
+    user = current_user()
+    if user:
+        try:
+            res = (_db().table("games").select("data")
+                   .eq("user_email", user).order("created_at").execute())
+            return [r["data"] for r in (res.data or [])]
+        except Exception as e:
+            st.warning(f"Couldn't load your saved games: {e}")
+            return []
     if HOSTED:
         return st.session_state.get("history", [])
     if os.path.exists(HISTORY_FILE):
@@ -132,6 +196,8 @@ def load_history():
     return []
 
 def save_history(history):
+    # Only used for the anonymous/local backends; signed-in writes go per-row
+    # through append_game / clear_history below.
     if HOSTED:
         st.session_state["history"] = history
         return
@@ -140,11 +206,27 @@ def save_history(history):
 
 def append_game(record):
     """Add a game record, replacing any existing one with the same id (dedup on re-analysis)."""
+    user = current_user()
+    if user:
+        try:
+            _db().table("games").upsert(
+                {"user_email": user, "id": record.get("id"), "data": record},
+                on_conflict="user_email,id").execute()
+        except Exception as e:
+            st.warning(f"Couldn't save this game to your account: {e}")
+        return
     hist = [g for g in load_history() if g.get("id") != record.get("id")]
     hist.append(record)
     save_history(hist)
 
 def clear_history():
+    user = current_user()
+    if user:
+        try:
+            _db().table("games").delete().eq("user_email", user).execute()
+        except Exception as e:
+            st.warning(f"Couldn't clear your saved games: {e}")
+        return
     save_history([])
 
 # --- 2. PREMIUM UI / UX SETUP ---
@@ -1677,6 +1759,20 @@ saved_decks = load_saved_decks()
 
 with st.sidebar:
     st.header("⚙️ Configuration")
+    # Account / login (only when accounts are configured in secrets).
+    if ACCOUNTS:
+        _user = current_user()
+        if _user:
+            st.success(f"👤 Signed in as {_user}")
+            st.caption("Your decks and game history are saved to your account.")
+            if st.button("Sign out"):
+                st.logout()
+        else:
+            st.caption("🔒 Sign in to save your decks and game history across devices. "
+                       "(Optional — you can use the app without an account.)")
+            if st.button("🔑 Sign in with Google", type="primary"):
+                st.login()
+        st.divider()
     if HOSTED:
         # Hosted deployment: the owner supplies the key via Streamlit secrets,
         # so visitors never see or enter one.
