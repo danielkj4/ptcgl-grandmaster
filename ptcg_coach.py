@@ -149,7 +149,8 @@ def clear_history():
 
 # --- 2. PREMIUM UI / UX SETUP ---
 def setup_ui():
-    st.set_page_config(page_title="PTCGL Grandmaster", layout="wide", page_icon="🔮")
+    st.set_page_config(page_title="PTCGL Grandmaster", layout="wide", page_icon="🔮",
+                       initial_sidebar_state="expanded")
     custom_css = """
     <style>
         .stApp { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
@@ -221,6 +222,17 @@ def setup_ui():
         #MainMenu { visibility: hidden !important; }
         header[data-testid="stHeader"] { background: transparent !important; }
         footer { visibility: hidden !important; }
+        /* Keep the "expand sidebar" arrow always visible & clickable when the
+           sidebar is collapsed (the transparent header can hide it). */
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="collapsedControl"] {
+            display: flex !important; visibility: visible !important; opacity: 1 !important;
+            z-index: 1000 !important; }
+        [data-testid="stSidebarCollapsedControl"] button,
+        [data-testid="collapsedControl"] button,
+        [data-testid="stSidebarCollapsedControl"] svg,
+        [data-testid="collapsedControl"] svg {
+            color: #66fcf1 !important; fill: #66fcf1 !important; }
     </style>
     """
     st.markdown(custom_css, unsafe_allow_html=True)
